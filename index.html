@@ -20,8 +20,8 @@
         .slot-btn { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; opacity: 0.2; transition: 0.2s; cursor: pointer; border: 2px solid transparent; }
         @media (min-width: 768px) { .slot-btn { width: 40px; height: 40px; font-size: 1.25rem; } }
         .slot-btn.active { opacity: 1; transform: scale(1.1); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        .bulk-btn { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: white; transition: 0.2s; cursor: pointer; border: none; }
-        @media (min-width: 768px) { .bulk-btn { width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; } }
+        .bulk-btn { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: white; transition: 0.2s; cursor: pointer; border: none; }
+        @media (min-width: 768px) { .bulk-btn { width: 38px; height: 38px; border-radius: 10px; font-size: 1.1rem; } }
         .bulk-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .day-sat { background-color: #eff6ff !important; }
         .day-sun { background-color: #fff1f2 !important; }
@@ -127,7 +127,13 @@
         <div id="main-view" class="hidden max-w-5xl mx-auto">
             <header class="text-center mb-6 px-4">
                 <h1 id="disp-title" class="text-3xl md:text-5xl font-bold text-slate-900 mb-3 leading-tight tracking-tighter"></h1>
-                <p id="disp-period" class="text-slate-500 font-bold bg-white px-6 py-2 rounded-full shadow-sm inline-block border text-base"></p>
+                <div class="flex flex-col items-center justify-center gap-3 relative">
+                    <p id="disp-period" class="text-slate-500 font-bold bg-white px-6 py-2 rounded-full shadow-sm inline-block border text-sm md:text-base"></p>
+                    <button id="btn-copy-url" class="flex items-center gap-2 bg-slate-800 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-slate-700 active:scale-95 transition">
+                        <span>🔗 共有用URLをコピー</span>
+                    </button>
+                    <p id="copy-toast" class="text-xs text-indigo-600 font-bold transition-opacity duration-300 opacity-0 absolute -bottom-5">✅ コピーしました！</p>
+                </div>
             </header>
 
             <div class="mb-4 md:mb-6 flex justify-center border-b-2 overflow-x-auto bg-white md:bg-transparent">
@@ -293,6 +299,7 @@
             document.getElementById('main-view').classList.remove('hidden');
             document.getElementById('disp-title').innerText = projectConfig.title;
             document.getElementById('disp-period').innerText = `${projectConfig.startDate} 〜 ${projectConfig.endDate}`;
+            document.getElementById('btn-copy-url').onclick = async () => { await navigator.clipboard.writeText(window.location.href); const toast = document.getElementById('copy-toast'); toast.classList.remove('opacity-0'); setTimeout(() => toast.classList.add('opacity-0'), 2000); };
             const sel = document.getElementById('user-select');
             sel.innerHTML = '<option value="">▼ お名前を選択してください</option>' + projectConfig.members.map(m => `<option value="${m.replace('*','')}">${m.replace('*','')}</option>`).join('');
             sel.onchange = async () => {
@@ -311,7 +318,7 @@
             const container = document.getElementById('grid-container');
             const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
             let html = `<table class="w-full text-sm md:text-base"><thead class="bg-slate-50 sticky-header text-slate-500 border-b-2"><tr><th class="p-2 md:p-4 border text-center">日付</th>`;
-            projectConfig.slots.forEach(s => html += `<th class="p-1 md:p-4 border text-center font-bold text-[10px] md:text-lg leading-tight">${s.label}<br><span class="font-normal text-[8px] md:text-[11px] opacity-60 tracking-tighter">${s.time}</span></th>`);
+            projectConfig.slots.forEach(s => html += `<th class="p-1 md:p-4 border text-center font-bold text-xs md:text-base leading-snug">${s.label}<br><span class="font-normal text-[10px] md:text-xs opacity-75 tracking-tight">${s.time}</span></th>`);
             html += `</tr></thead><tbody class="bg-white">`;
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), act = projectConfig.activeMap[isH?'H':day] || [];
@@ -328,19 +335,21 @@
 
         function renderBulkButtons() {
             const container = document.getElementById('bulk-container'); container.innerHTML = '';
-            const dCol = document.createElement('div'); dCol.className = "space-y-4 border-r-2 border-indigo-100 pr-8";
+            const dCol = document.createElement('div'); dCol.className = "space-y-2 md:space-y-3 md:border-r-2 border-indigo-100 md:pr-8 mb-4 md:mb-0";
+            dCol.innerHTML = '<div class="text-xs md:text-sm font-bold text-indigo-700 mb-2 md:mb-4 border-b border-indigo-200 pb-1">📅 曜日で一括</div>';
             const daysArr = [{l:'月',v:1},{l:'火',v:2},{l:'水',v:3},{l:'木',v:4},{l:'金',v:5},{l:'土',v:6},{l:'日/祝',v:0}];
             daysArr.forEach(d => dCol.appendChild(createBulkRow(d.l, 'day', d.v)));
-            const sCol = document.createElement('div'); sCol.className = "space-y-4";
+            const sCol = document.createElement('div'); sCol.className = "space-y-2 md:space-y-3";
+            sCol.innerHTML = '<div class="text-xs md:text-sm font-bold text-indigo-700 mb-2 md:mb-4 border-b border-indigo-200 pb-1">⏰ 枠・全体で一括</div>';
             projectConfig.slots.forEach(s => sCol.appendChild(createBulkRow(s.label, 'slot', s.id)));
             sCol.appendChild(createBulkRow('全体', 'all', 'all'));
             container.appendChild(dCol); container.appendChild(sCol);
         }
 
         function createBulkRow(label, type, target) {
-            const row = document.createElement('div'); row.className = "flex items-center gap-4 mb-2";
-            row.innerHTML = `<span class="text-base font-bold w-12 text-slate-600">${label}</span>`;
-            const grp = document.createElement('div'); grp.className = "flex gap-2";
+            const row = document.createElement('div'); row.className = "flex items-center gap-2 md:gap-4 mb-1 md:mb-2";
+            row.innerHTML = `<span class="text-sm md:text-base font-bold w-10 md:w-12 text-slate-600">${label}</span>`;
+            const grp = document.createElement('div'); grp.className = "flex gap-1.5 md:gap-2";
             [{v:'◯',c:'bg-ok'}, {v:'△',c:'bg-partial'}, {v:'✕',c:'bg-ng'}].forEach(st => { const b = document.createElement('button'); b.className = `bulk-btn ${st.c} shadow-md`; b.innerText = st.v; b.onclick = () => bulkSet(type, target, st.v); grp.appendChild(b); });
             const clr = document.createElement('button'); clr.className = "bulk-btn bg-clr shadow-md"; clr.innerHTML = '⌫'; clr.onclick = () => bulkSet(type, target, null); grp.appendChild(clr);
             row.appendChild(grp); return row;
