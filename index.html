@@ -59,6 +59,28 @@
             </div>
         </div>
 
+        <!-- カスタムモーダル -->
+        <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900/75 z-[2000] flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-7 flex flex-col items-center gap-5">
+                <p id="modal-message" class="text-slate-800 text-lg font-bold text-center leading-relaxed whitespace-pre-wrap"></p>
+                <div id="modal-buttons" class="flex gap-3 w-full justify-center"></div>
+            </div>
+        </div>
+
+        <!-- 公開後共有URLモーダル -->
+        <div id="share-modal" class="hidden fixed inset-0 bg-slate-900/75 z-[2000] flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-7 flex flex-col items-center gap-4">
+                <div class="text-4xl">🎉</div>
+                <p class="text-xl font-bold text-indigo-900 text-center">プロジェクトを公開しました！</p>
+                <p class="text-sm text-slate-600 text-center leading-relaxed">下記の共有用URLを参加者全員と共有して、<br>予定を入力してもらってください。</p>
+                <div class="w-full flex gap-2">
+                    <input id="share-url-input" type="text" readonly class="flex-1 p-3 border-2 rounded-xl text-sm bg-slate-50 outline-none" value="">
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('share-url-input').value).then(()=>{this.textContent='✅'})" class="bg-slate-800 text-white px-4 rounded-xl text-sm font-bold hover:bg-slate-700 transition">📋</button>
+                </div>
+                <button id="share-modal-ok" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-2xl hover:bg-indigo-700 transition text-base">OK（画面を開く）</button>
+            </div>
+        </div>
+
         <div id="admin-view" class="max-w-4xl mx-auto hidden bg-white p-6 md:p-10 rounded-3xl shadow-2xl border border-slate-200">
             <h1 id="admin-title" class="text-2xl md:text-3xl font-bold text-center text-indigo-900 mb-6 border-b-2 border-indigo-200 pb-3">新しいプロジェクトを作成</h1>
             
@@ -67,6 +89,7 @@
                 <ul class="list-disc ml-5 space-y-1">
                     <li>参加者名はフルネームを避け、「名字のみ」や「ニックネーム」にするなど、個人情報の取り扱いにご配慮ください。</li>
                     <li>公演や調整期間が終了して不要になった場合は、作成者ご自身でのプロジェクト削除をお願いいたします。</li>
+                    <li>ご利用にあたり、必ず <a href="./terms.html" target="_blank" class="text-indigo-700 underline font-bold">利用規約</a> および <a href="./privacy.html" target="_blank" class="text-indigo-700 underline font-bold">プライバシーポリシー</a> をお読みください。</li>
                 </ul>
             </div>
 
@@ -177,7 +200,7 @@
 
             <div class="mb-4 md:mb-6 flex justify-center border-b-2 overflow-x-auto bg-white md:bg-transparent">
                 <button data-tab="input" class="tab-btn active px-3 md:px-8 py-4 md:py-5 font-bold text-sm md:text-lg text-slate-400 whitespace-nowrap">予定入力</button>
-                <button data-tab="summary" class="tab-btn px-3 md:px-8 py-4 md:py-5 font-bold text-sm md:text-lg text-slate-400 whitespace-nowrap">集計結果</button>
+                <button data-tab="summary" class="tab-btn px-3 md:px-8 py-4 md:py-5 font-bold text-sm md:text-lg text-slate-400 whitespace-nowrap">集計一覧</button>
                 <button data-tab="confirmed" class="tab-btn px-3 md:px-8 py-4 md:py-5 font-bold text-sm md:text-lg text-slate-400 whitespace-nowrap">稽古日程</button>
                 <button id="btn-open-edit" class="px-3 md:px-6 py-4 md:py-5 font-bold text-indigo-400 ml-auto flex items-center gap-1 text-sm md:text-base whitespace-nowrap">⚙️ 設定・削除</button>
             </div>
@@ -283,6 +306,39 @@
             inp.type = inp.type === 'password' ? 'text' : 'password';
             btn.textContent = inp.type === 'password' ? '🔒' : '🔓';
         };
+
+        function showAlert(msg) {
+            return new Promise(resolve => {
+                document.getElementById('modal-message').textContent = msg;
+                const btns = document.getElementById('modal-buttons');
+                btns.innerHTML = '';
+                const ok = document.createElement('button');
+                ok.textContent = 'OK';
+                ok.className = 'flex-1 bg-indigo-600 text-white font-bold py-3 rounded-2xl hover:bg-indigo-700 transition text-base';
+                ok.onclick = () => { document.getElementById('custom-modal').classList.add('hidden'); resolve(); };
+                btns.appendChild(ok);
+                document.getElementById('custom-modal').classList.remove('hidden');
+            });
+        }
+
+        function showConfirm(msg) {
+            return new Promise(resolve => {
+                document.getElementById('modal-message').textContent = msg;
+                const btns = document.getElementById('modal-buttons');
+                btns.innerHTML = '';
+                const cancel = document.createElement('button');
+                cancel.textContent = 'キャンセル';
+                cancel.className = 'flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-2xl hover:bg-slate-200 transition text-base border-2';
+                cancel.onclick = () => { document.getElementById('custom-modal').classList.add('hidden'); resolve(false); };
+                const ok = document.createElement('button');
+                ok.textContent = 'OK';
+                ok.className = 'flex-1 bg-indigo-600 text-white font-bold py-3 rounded-2xl hover:bg-indigo-700 transition text-base';
+                ok.onclick = () => { document.getElementById('custom-modal').classList.add('hidden'); resolve(true); };
+                btns.appendChild(cancel);
+                btns.appendChild(ok);
+                document.getElementById('custom-modal').classList.remove('hidden');
+            });
+        }
 
         let projectConfig = null;
         let allResponses = {};
@@ -390,18 +446,26 @@
             await setDoc(doc(db, "projects", id), { title, password: savedPassword, startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, updatedAt: serverTimestamp() });
             if(savedPassword) localStorage.setItem(`pass_${id}`, savedPassword);
             else localStorage.removeItem(`pass_${id}`);
-            location.href = `?id=${id}`;
+            if(!isEditingProject) {
+                // 新規作成時は共有URLモーダルを表示してから遷移
+                const shareUrl = `${location.origin}${location.pathname}?id=${id}`;
+                document.getElementById('share-url-input').value = shareUrl;
+                document.getElementById('share-modal').classList.remove('hidden');
+                document.getElementById('share-modal-ok').onclick = () => { location.href = `?id=${id}`; };
+            } else {
+                location.href = `?id=${id}`;
+            }
         };
 
         document.getElementById('btn-delete-project').onclick = async () => {
-            if(!confirm("【警告】プロジェクトと全ての回答データが完全に削除されます。よろしいですか？")) return;
+            if(!await showConfirm("【警告】プロジェクトと全ての回答データが完全に削除されます。\nよろしいですか？")) return;
             const resRef = collection(db, "projects", projectId, "responses");
             const snp = await getDocs(resRef);
             const batch = writeBatch(db);
             snp.forEach(d => batch.delete(d.ref));
             batch.delete(doc(db, "projects", projectId));
             await batch.commit();
-            alert("削除完了しました");
+            await showAlert("削除が完了しました。");
             location.href = "/";
         };
 
@@ -512,15 +576,15 @@
         window.saveConfirmedSchedule = async () => {
             const chks = document.querySelectorAll('.slot-confirm-chk:checked');
             const finalizedSlots = Array.from(chks).map(c => ({ date: c.dataset.date, slotId: c.dataset.slot }));
-            if(!confirm(`チェックされた ${finalizedSlots.length} 個の枠を「稽古日程」として反映しますか？\n（※確定タブの表示が上書きされます）`)) return;
+            if(!await showConfirm(`チェックされた ${finalizedSlots.length} 個の枠を「稽古日程」として反映しますか？`)) return;
             try {
                 await setDoc(doc(db, "projects", projectId), { finalizedSlots, updatedAt: serverTimestamp() }, { merge: true });
                 projectConfig.finalizedSlots = finalizedSlots;
-                alert("稽古日程に反映しました！");
+                await showAlert("稽古日程に反映しました！");
                 if(document.querySelector('.tab-btn[data-tab="confirmed"]')) document.querySelector('.tab-btn[data-tab="confirmed"]').click();
             } catch(e) {
                 console.error(e);
-                alert("保存に失敗しました。");
+                await showAlert("保存に失敗しました。");
             }
         };
 
