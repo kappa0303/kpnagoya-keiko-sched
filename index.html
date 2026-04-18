@@ -88,8 +88,8 @@
                         <input type="text" id="setup-password" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="設定を推奨します。">
                     </div>
                     <div>
-                        <label class="block font-bold mb-1 text-sm">参加者名 (カンマ区切り)</label>
-                        <input type="text" id="setup-members" class="w-full p-3 border-2 rounded-xl" placeholder="山田, 鈴木, 佐藤">
+                        <label class="block font-bold mb-1 text-sm">参加者名 (カンマ、読点、改行等で区切る)</label>
+                        <textarea id="setup-members" class="w-full p-3 border-2 rounded-xl" rows="2" placeholder="山田, 鈴木, 佐藤"></textarea>
                     </div>
                 </div>
 
@@ -281,7 +281,7 @@
         document.getElementById('btn-save-project').onclick = async () => {
             const id = document.getElementById('setup-id').value.trim();
             const title = document.getElementById('setup-title').value.trim();
-            const members = document.getElementById('setup-members').value.split(',').map(s => s.trim()).filter(s => s);
+            const members = document.getElementById('setup-members').value.split(/[,、\t\n\r]+/).map(s => s.trim()).filter(s => s);
             if(!id.match(/^[a-zA-Z0-9-]{3,20}$/)) return alert("IDは3-20文字の英数字で入力してください");
             if(!title) return alert("プロジェクト名を入力してください");
 
