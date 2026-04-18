@@ -62,7 +62,7 @@
         <!-- カスタムモーダル -->
         <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900/75 z-[2000] flex items-center justify-center p-4">
             <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-7 flex flex-col items-center gap-5">
-                <p id="modal-message" class="text-slate-800 text-lg font-bold text-center leading-relaxed whitespace-pre-wrap"></p>
+                <p id="modal-message" class="text-slate-800 text-xl font-bold text-center leading-relaxed whitespace-pre-wrap"></p>
                 <div id="modal-buttons" class="flex gap-3 w-full justify-center"></div>
             </div>
         </div>
@@ -409,8 +409,8 @@
             const id = document.getElementById('setup-id').value.trim();
             const title = document.getElementById('setup-title').value.trim();
             const members = document.getElementById('setup-members').value.split(/[,、\t\n\r]+/).map(s => s.trim()).filter(s => s);
-            if(!id.match(/^[a-zA-Z0-9-]{3,20}$/)) return alert("IDは3-20文字の英数字で入力してください");
-            if(!title) return alert("プロジェクト名を入力してください");
+            if(!id.match(/^[a-zA-Z0-9-]{3,20}$/)) { await showAlert("IDは3-20文字の英数字で入力してください"); return; }
+            if(!title) { await showAlert("プロジェクト名を入力してください"); return; }
 
             const slots = [];
             document.querySelectorAll('.slot-label-in').forEach((el, i) => { const label = el.value.trim(); const time = document.querySelectorAll('.slot-time-in')[i].value.trim(); if(label) slots.push({ id: `slot${i}`, label, time }); });
@@ -638,16 +638,16 @@
             try {
                 await setDoc(doc(db, "projects", projectId), { finalizedSlots: updatedSlots, updatedAt: serverTimestamp() }, { merge: true });
                 projectConfig.finalizedSlots = updatedSlots;
-                alert("場所・備考を登録しました！");
+                await showAlert("場所・備考を登録しました！");
             } catch(e) {
                 console.error(e);
-                alert("登録に失敗しました。");
+                await showAlert("登録に失敗しました。");
             }
         };
 
-        window.copyConfirmedText = () => {
+        window.copyConfirmedText = async () => {
             const dJ = ['日','月','火','水','木','金','土'];
-            if(!projectConfig.finalizedSlots || projectConfig.finalizedSlots.length === 0) return alert('コピーする日程がありません。');
+            if(!projectConfig.finalizedSlots || projectConfig.finalizedSlots.length === 0) { await showAlert('コピーする日程がありません。'); return; }
             const sorted = [...projectConfig.finalizedSlots].sort((a,b) => {
                 if(a.date !== b.date) return a.date.localeCompare(b.date);
                 return a.slotId.localeCompare(b.slotId);
@@ -663,7 +663,7 @@
                 txt += '\n';
             });
             navigator.clipboard.writeText(txt);
-            alert("テキストをクリップボードにコピーしました！LINEやメールに貼り付けてご利用ください。");
+            await showAlert("テキストをクリップボードにコピーしました！メッセンジャーやメールに貼り付けてご利用ください。");
         };
 
         window.toggleAggregation = (name) => {
