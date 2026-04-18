@@ -50,7 +50,10 @@
                 <div class="text-4xl mb-4">🔐</div>
                 <h2 class="text-xl font-bold mb-2">閲覧制限</h2>
                 <p class="text-sm text-slate-500 mb-6">このプロジェクトには鍵がかかっています<br>パスワードを入力してください</p>
-                <input type="password" id="access-pass-input" class="w-full p-4 border-2 rounded-2xl mb-4 text-center text-2xl tracking-widest outline-none focus:border-indigo-500" placeholder="****">
+                <div class="relative mb-4">
+                    <input type="password" id="access-pass-input" class="w-full p-4 border-2 rounded-2xl text-center text-2xl tracking-widest outline-none focus:border-indigo-500 pr-12" placeholder="****">
+                    <button type="button" onclick="togglePw('access-pass-input',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xl">👁️</button>
+                </div>
                 <button id="btn-unlock" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition-all">認証する</button>
                 <p id="unlock-error" class="text-red-500 text-sm mt-4 hidden">正しいパスワードを入力してください</p>
             </div>
@@ -87,13 +90,22 @@
                     <!-- 新規作成時のパスワード欄 -->
                     <div id="pw-new-section">
                         <label class="block font-bold mb-1 text-sm">パスワード <span class="text-xs font-normal text-slate-500">(任意）設定すると閲覧にパスワードが必要になります</span></label>
-                        <input type="text" id="setup-password" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="パスワード（空白の場合は設定なし）">
+                        <div class="relative">
+                            <input type="password" id="setup-password" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="パスワード（空白の場合は設定なし）">
+                            <button type="button" onclick="togglePw('setup-password',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">👁️</button>
+                        </div>
                     </div>
                     <!-- 設定変更時のパスワード変更欄 -->
                     <div id="pw-change-section" class="hidden">
                         <label class="block font-bold mb-1 text-sm">パスワードの変更 <span class="text-xs font-normal text-slate-500">(変更する場合のみ入力）</span></label>
-                        <input type="text" id="setup-password-new" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none mb-2" placeholder="新しいパスワード（空白=変更なし）">
-                        <input type="text" id="setup-password-confirm" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="再入力(確認用）">
+                        <div class="relative mb-2">
+                            <input type="password" id="setup-password-new" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="新しいパスワード（空白=変更なし）">
+                            <button type="button" onclick="togglePw('setup-password-new',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">👁️</button>
+                        </div>
+                        <div class="relative">
+                            <input type="password" id="setup-password-confirm" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="再入力(確認用）">
+                            <button type="button" onclick="togglePw('setup-password-confirm',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">👁️</button>
+                        </div>
                         <p id="pw-mismatch-msg" class="hidden text-xs text-red-500 mt-1 font-bold">⚠️ 新しいパスワードが一致しません</p>
                     </div>
                     <div>
@@ -214,11 +226,14 @@
 
             <div id="tab-confirmed" class="tab-content hidden">
                 <div class="bg-white p-4 md:p-8 rounded-3xl shadow-xl border border-slate-100">
-                    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                         <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2 bg-indigo-50 text-indigo-900 border-l-4 border-indigo-500 py-2 px-3 rounded-r-lg"><span class="text-2xl">📅</span> 決定した稽古日程一覧</h2>
-                        <button onclick="window.copyConfirmedText()" class="bg-slate-100 border-2 border-slate-200 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs md:text-sm font-bold shadow-sm transition active:scale-95">📋 テキストでコピー</button>
+                        <div class="flex gap-2">
+                            <button onclick="window.saveVenueNotes()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs md:text-sm font-bold shadow-sm transition active:scale-95">💾 場所・備考を登録</button>
+                            <button onclick="window.copyConfirmedText()" class="bg-slate-100 border-2 border-slate-200 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs md:text-sm font-bold shadow-sm transition active:scale-95">📋 テキストでコピー</button>
+                        </div>
                     </div>
-                    <div id="confirmed-list" class="space-y-3 p-4 md:p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 text-sm md:text-lg">
+                    <div id="confirmed-list" class="space-y-2 p-3 md:p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl">
                     </div>
                 </div>
             </div>
@@ -257,6 +272,12 @@
         const urlParams = new URLSearchParams(window.location.search);
         const projectId = urlParams.get('id');
         const HOLIDAYS = new Set(['2026-04-29', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06']);
+        window.togglePw = (id, btn) => {
+            const inp = document.getElementById(id);
+            if(!inp) return;
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            btn.textContent = inp.type === 'password' ? '👁️' : '🔓';
+        };
 
         let projectConfig = null;
         let allResponses = {};
@@ -508,12 +529,46 @@
                 const dayStr = isH ? '祝' : dJ[d.getDay()];
                 const dColor = isH ? 'text-red-600' : (d.getDay()===0?'text-red-500':(d.getDay()===6?'text-blue-500':''));
                 const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
-                const sLab = slotObj ? `${slotObj.label} <span class="text-xs md:text-sm font-normal text-slate-400">(${slotObj.time})</span>` : '';
+                const sLab = slotObj ? `${slotObj.label} <span class="text-xs font-normal text-slate-400">(${slotObj.time})</span>` : '';
                 const noBadge = `<span class="bg-indigo-100 text-indigo-700 font-bold rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-[10px] md:text-xs flex-shrink-0 shadow-sm">${idx + 1}</span>`;
-                html += `<div class="flex items-center gap-2 md:gap-3 border-b border-slate-200 pb-3 mb-3 last:border-0 last:mb-0 last:pb-0">${noBadge} <span class="w-32 md:w-48 inline-block font-bold">${d.getMonth()+1}月${d.getDate()}日 (<span class="${dColor}">${dayStr}</span>)</span> <span>${sLab}</span></div>`;
+                html += `
+                <div class="border-b border-slate-200 pb-3 mb-3 last:border-0 last:mb-0 last:pb-0" data-idx="${idx}">
+                    <div class="flex items-center gap-2 mb-2">
+                        ${noBadge}
+                        <span class="font-bold text-sm md:text-base">${d.getMonth()+1}月${d.getDate()}日(<span class="${dColor}">${dayStr}</span>)</span>
+                        <span class="text-sm md:text-base">${sLab}</span>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 ml-7">
+                        <input type="text" class="confirmed-venue flex-1 p-2 border rounded-lg text-sm" placeholder="稽古場所" data-date="${f.date}" data-slot="${f.slotId}" value="${f.venue || ''}">
+                        <input type="text" class="confirmed-notes flex-1 p-2 border rounded-lg text-sm" placeholder="備考" data-date="${f.date}" data-slot="${f.slotId}" value="${f.notes || ''}">
+                    </div>
+                </div>`;
             });
             container.innerHTML = html;
         }
+
+        window.saveVenueNotes = async () => {
+            if(!projectConfig.finalizedSlots || projectConfig.finalizedSlots.length === 0) return;
+            const venueInputs = document.querySelectorAll('.confirmed-venue');
+            const notesInputs = document.querySelectorAll('.confirmed-notes');
+            const updatedSlots = [...projectConfig.finalizedSlots];
+            venueInputs.forEach(inp => {
+                const slot = updatedSlots.find(s => s.date === inp.dataset.date && s.slotId === inp.dataset.slot);
+                if(slot) slot.venue = inp.value.trim();
+            });
+            notesInputs.forEach(inp => {
+                const slot = updatedSlots.find(s => s.date === inp.dataset.date && s.slotId === inp.dataset.slot);
+                if(slot) slot.notes = inp.value.trim();
+            });
+            try {
+                await setDoc(doc(db, "projects", projectId), { finalizedSlots: updatedSlots, updatedAt: serverTimestamp() }, { merge: true });
+                projectConfig.finalizedSlots = updatedSlots;
+                alert("場所・備考を登録しました！");
+            } catch(e) {
+                console.error(e);
+                alert("登録に失敗しました。");
+            }
+        };
 
         window.copyConfirmedText = () => {
             const dJ = ['日','月','火','水','木','金','土'];
@@ -527,7 +582,10 @@
                 const d = parseDateStr(f.date); const isH = HOLIDAYS.has(f.date);
                 const dayStr = isH ? '祝' : dJ[d.getDay()];
                 const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
-                txt += `${d.getMonth()+1}月${d.getDate()}日(${dayStr}) ${slotObj ? slotObj.label+' '+slotObj.time : ''}\n`;
+                txt += `${d.getMonth()+1}月${d.getDate()}日(${dayStr}) ${slotObj ? slotObj.label+' '+slotObj.time : ''}`;
+                if(f.venue) txt += `  [場所] ${f.venue}`;
+                if(f.notes) txt += `  [備考] ${f.notes}`;
+                txt += '\n';
             });
             navigator.clipboard.writeText(txt);
             alert("テキストをクリップボードにコピーしました！LINEやメールに貼り付けてご利用ください。");
