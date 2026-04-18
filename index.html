@@ -60,10 +60,13 @@
             <h1 id="admin-title" class="text-2xl md:text-3xl font-bold text-center text-indigo-900 mb-6 border-b-2 border-indigo-200 pb-3">新しいプロジェクトを作成</h1>
             
             <div class="mb-8 p-6 bg-slate-50 border-2 border-slate-200 rounded-3xl text-sm leading-relaxed text-slate-700">
-                <h3 class="font-bold mb-3 text-base flex items-center gap-2 text-slate-800">📌 ご利用にあたってのお願い</h3>
+                <h3 class="font-bold mb-3 text-base flex items-center gap-2 text-slate-800">📌 入力時のご注意事項</h3>
                 <ul class="list-disc ml-5 space-y-2">
-                    <li><strong>お名前の入力について:</strong> 参加者名はフルネームを避け、「名字のみ」や「ニックネーム」にするなど、個人情報の取り扱いにご配慮ください。</li>
-                    <li><strong>プロジェクトの削除について:</strong> 公演や調整期間が終了して不要になった場合は、作成者ご自身での削除をお願いいたします。</li>
+                    <li><strong>プロジェクトID:</strong> 一度設定したら後から変更できません。英数字・ハイフンのみ、半角小文字推奨です。</li>
+                    <li><strong>パスワード:</strong> 必ず設定してください。予定を入力する全員で共有する内容で構いません。設定変更時にも必要になります。</li>
+                    <li><strong>参加者名:</strong> カンマ、読点、タブ、改行のいずれでも区切れます。Excelの名簿をコピペできます。名前の先頭に <code class="bg-slate-200 px-1 rounded">*</code> を付けると集計非対象になります。</li>
+                    <li><strong>時間枠・曜日別設定:</strong> 表示したい曜日の枠にチェックを入れてください。全て外した曜日は集計表から非表示になります。</li>
+                    <li><strong>プロジェクトの削除:</strong> 公演や調整期間が終了して不要になった場合は、作成者ご自身での削除をお願いいたします。</li>
                 </ul>
             </div>
 
@@ -84,11 +87,11 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block font-bold mb-1 text-sm">プロジェクトの鍵 (パスワード)</label>
-                        <input type="text" id="setup-password" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="設定を推奨します。">
+                        <label class="block font-bold mb-1 text-sm">プロジェクトの鍵 (パスワード) <span class="text-xs text-red-500 font-bold">必設</span> <span class="text-xs font-normal text-slate-500">改設現場で入力も必要</span></label>
+                        <input type="text" id="setup-password" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="全員で共有するパスワードを設定">
                     </div>
                     <div>
-                        <label class="block font-bold mb-1 text-sm">参加者名 (カンマ、読点、改行等で区切る)</label>
+                        <label class="block font-bold mb-1 text-sm">参加者名 <span class="text-xs font-normal text-slate-500">カンマ・読点・タブ・改行で区切り / 名前先頭に * で集計非対象</span></label>
                         <textarea id="setup-members" class="w-full p-3 border-2 rounded-xl" rows="2" placeholder="山田, 鈴木, 佐藤"></textarea>
                     </div>
                 </div>
@@ -315,7 +318,11 @@
             document.querySelectorAll('.slot-chk').forEach(ck => { if(ck.checked) { const d = ck.dataset.day; if(!activeMap[d]) activeMap[d] = []; activeMap[d].push(`slot${ck.dataset.row}`); } });
             
             const finalizedSlots = projectConfig?.finalizedSlots || [];
-            await setDoc(doc(db, "projects", id), { title, password: document.getElementById('setup-password').value.trim(), startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, updatedAt: serverTimestamp() });
+            const newPassword = document.getElementById('setup-password').value.trim();
+            await setDoc(doc(db, "projects", id), { title, password: newPassword, startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, updatedAt: serverTimestamp() });
+            // パスワード変更に対応: localStorageも新パスワードで更新する
+            if(newPassword) localStorage.setItem(`pass_${id}`, newPassword);
+            else localStorage.removeItem(`pass_${id}`);
             location.href = `?id=${id}`;
         };
 
