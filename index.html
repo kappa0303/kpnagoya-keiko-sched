@@ -181,7 +181,13 @@
             </div>
 
             <div id="tab-summary" class="tab-content hidden">
-                <div id="summary-container" class="bg-white p-4 md:p-8 rounded-3xl shadow-xl overflow-x-auto border border-slate-100"></div>
+                <div class="mb-4 flex flex-wrap justify-between items-end px-2 gap-3">
+                    <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2 text-slate-800"><span class="text-2xl">📊</span> 全員の入力状況</h2>
+                    <button onclick="window.exportCSV()" class="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-xl text-xs md:text-sm font-bold shadow-md hover:bg-slate-700 active:scale-95 transition">
+                        <span>⬇️ CSVでエクスポート</span>
+                    </button>
+                </div>
+                <div id="summary-container" class="bg-white p-2 md:p-8 rounded-3xl shadow-xl overflow-x-auto border border-slate-100"></div>
             </div>
         </div>
     </div>
@@ -384,6 +390,24 @@
         window.updateSlot = (btn, status, forceGroup = null) => { const parent = forceGroup || btn.parentElement; const { date, slot } = parent.dataset; parent.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active')); if(status && btn) { btn.classList.add('active'); if(!currentAvailability[date]) currentAvailability[date] = {}; currentAvailability[date][slot] = status; } else if(!status) { if(currentAvailability[date]) delete currentAvailability[date][slot]; } };
 
         document.getElementById('btn-save-resp').onclick = async () => { const u = document.getElementById('user-select').value; if(!u) return alert("名前選択してください"); await setDoc(doc(db, "projects", projectId, "responses", u), { userName: u, availability: currentAvailability, comment: document.getElementById('comment-box').value, updatedAt: serverTimestamp() }); alert("保存しました"); };
+
+        window.exportCSV = () => {
+            const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
+            const targetMembers = projectConfig.members.filter(m => !m.startsWith('*')).map(m => m.replace('*',''));
+            let csv = "日付,曜日,枠名,時間," + targetMembers.join(",") + "\n";
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), actS = projectConfig.activeMap[isH ? 'H' : day] || [];
+                actS.forEach(slotId => {
+                    const slot = projectConfig.slots.find(s => s.id === slotId);
+                    let row = `${dS},${dJ[day]},${slot.label},${slot.time}`;
+                    targetMembers.forEach(m => row += `,${allResponses[m]?.availability?.[dS]?.[slotId] || "-"}`);
+                    csv += row + "\n";
+                });
+            }
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `日程集計_${projectConfig.title.substring(0,10)}.csv`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        };
 
         function renderSummary() {
             const container = document.getElementById('summary-container'); const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
