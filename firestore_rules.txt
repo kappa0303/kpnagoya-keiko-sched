@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // プロジェクトの設定情報
+    match /projects/{projectId} {
+      // 読み取りと、代表者による「プロジェクト削除ボタン」の実行を許可
+      allow read, delete: if true;
+      
+      // 作成・更新：タイトル文字が含まれている正規のアプリからの通信のみ許可（警告メール対策）
+      allow create, update: if request.resource.data.title is string;
+
+      // メンバーごとの出欠回答（サブコレクション）
+      match /responses/{userName} {
+        // 読み取りと、プロジェクト削除と一緒に消す処理を許可
+        allow read, delete: if true;
+        
+        // （今のルールの名残）URLのパス=送信された名前が一致する場合のみ許可
+        allow create, update: if request.resource.data.userName == userName;
+      }
+      
+      // 確定した稽古日程（昔のバージョンの名残・今後使うなら残す）
+      match /final_schedule/{scheduleId} {
+        allow read, delete: if true;
+        allow write: if true; 
+      }
+    }
+  }
+}
