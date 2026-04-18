@@ -240,7 +240,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, query, onSnapshot, serverTimestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, getDocFromServer, setDoc, deleteDoc, collection, query, onSnapshot, serverTimestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         // --- Firebase Config ---
         const firebaseConfig = {
@@ -267,7 +267,9 @@
 
         if (!projectId) { showAdminMode(false); } else { loadProject(projectId); }
 
+        let isEditingProject = false;
         function showAdminMode(isEdit = false) {
+            isEditingProject = isEdit;
             document.getElementById('main-view').classList.add('hidden');
             document.getElementById('admin-view').classList.remove('hidden');
             const grid = document.getElementById('setup-slot-grid'); grid.innerHTML = '';
@@ -294,7 +296,11 @@
                 const lab = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].label : dL[i];
                 const tim = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].time : dT[i];
                 tr.innerHTML = `<td class="p-1.5 md:p-3 border align-middle"><div class="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3"><input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:p-2 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名"><input type="text" maxlength="20" class="slot-time-in w-full lg:w-32 p-1 md:p-2 border-2 rounded-md text-[10px] md:text-base text-center lg:text-left" value="${tim}" placeholder="時間"></div></td>` + 
-                [1,2,3,4,5,6,0, 'H'].map(d => `<td class="p-0.5 md:p-1 border text-center align-middle"><input type="checkbox" class="slot-chk w-4 h-4 md:w-6 md:h-6" data-row="${i}" data-day="${d}" ${(isEdit && projectConfig.activeMap[d] ? projectConfig.activeMap[d].includes(`slot${i}`) : (((d==='H'||d===0||d===6) && i !== 4) || i === 3))?'checked':''}></td>`).join('');
+                [1,2,3,4,5,6,0, 'H'].map(d => `<td class="p-0.5 md:p-1 border text-center align-middle"><input type="checkbox" class="slot-chk w-4 h-4 md:w-6 md:h-6" data-row="${i}" data-day="${d}" ${
+                    isEdit
+                        ? (projectConfig.activeMap[d] && projectConfig.activeMap[d].includes(`slot${i}`) ? 'checked' : '')
+                        : (((d==='H'||d===0||d===6) && i !== 4) || i === 3) ? 'checked' : ''
+                }></td>`).join('');
                 grid.appendChild(tr);
             }
         }
@@ -328,24 +334,23 @@
             document.querySelectorAll('.slot-chk').forEach(ck => { if(ck.checked) { const d = ck.dataset.day; if(!activeMap[d]) activeMap[d] = []; activeMap[d].push(`slot${ck.dataset.row}`); } });
             
             const finalizedSlots = projectConfig?.finalizedSlots || [];
-            const isEditMode = document.getElementById('pw-change-section') && !document.getElementById('pw-change-section').classList.contains('hidden');
             let savedPassword = projectConfig?.password || '';
 
-            if(isEditMode) {
-                // 編集模式: 新パスワード入力があれば確認チェック
+            if(isEditingProject) {
+                // 編集モード: 新パスワード入力があれば確認チェック
                 const np = document.getElementById('setup-password-new').value.trim();
                 const cp = document.getElementById('setup-password-confirm').value.trim();
                 if(np || cp) {
                     if(np !== cp) {
                         document.getElementById('pw-mismatch-msg').classList.remove('hidden');
-                        return; // 不一致の場合は保存中止
+                        return;
                     }
-                    savedPassword = np;
+                    savedPassword = np;  // パスワードを新しい値に更新
                     document.getElementById('pw-mismatch-msg').classList.add('hidden');
                 }
-                // np・cpが両方空ならパスワードそのまま維持
+                // 両方空の場合は現パスワードをそのまま維持
             } else {
-                // 新規作成模式: そのままパスワード欄の値を使う
+                // 新規作成モード: パスワード欄の値をそのまま使う
                 savedPassword = document.getElementById('setup-password').value.trim();
             }
 
@@ -368,7 +373,7 @@
         };
 
         async function loadProject(id) {
-            const snap = await getDoc(doc(db, "projects", id));
+            const snap = await getDocFromServer(doc(db, "projects", id));
             if(!snap.exists()) return showAdminMode(false);
             projectConfig = snap.data();
             if(projectConfig.password && localStorage.getItem(`pass_${id}`) !== projectConfig.password) { showLockScreen(); } else { showApp(); }
