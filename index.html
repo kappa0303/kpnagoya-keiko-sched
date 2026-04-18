@@ -59,14 +59,11 @@
         <div id="admin-view" class="max-w-4xl mx-auto hidden bg-white p-6 md:p-10 rounded-3xl shadow-2xl border border-slate-200">
             <h1 id="admin-title" class="text-2xl md:text-3xl font-bold text-center text-indigo-900 mb-6 border-b-2 border-indigo-200 pb-3">新しいプロジェクトを作成</h1>
             
-            <div class="mb-8 p-6 bg-slate-50 border-2 border-slate-200 rounded-3xl text-sm leading-relaxed text-slate-700">
-                <h3 class="font-bold mb-3 text-base flex items-center gap-2 text-slate-800">📌 入力時のご注意事項</h3>
-                <ul class="list-disc ml-5 space-y-2">
-                    <li><strong>プロジェクトID:</strong> 一度設定したら後から変更できません。英数字・ハイフンのみ、半角小文字推奨です。</li>
-                    <li><strong>パスワード:</strong> 必ず設定してください。予定を入力する全員で共有する内容で構いません。設定変更時にも必要になります。</li>
-                    <li><strong>参加者名:</strong> カンマ、読点、タブ、改行のいずれでも区切れます。Excelの名簿をコピペできます。名前の先頭に <code class="bg-slate-200 px-1 rounded">*</code> を付けると集計非対象になります。</li>
-                    <li><strong>時間枠・曜日別設定:</strong> 表示したい曜日の枠にチェックを入れてください。全て外した曜日は集計表から非表示になります。</li>
-                    <li><strong>プロジェクトの削除:</strong> 公演や調整期間が終了して不要になった場合は、作成者ご自身での削除をお願いいたします。</li>
+            <div class="mb-8 p-5 bg-amber-50 border-2 border-amber-200 rounded-2xl text-sm leading-relaxed text-slate-700">
+                <h3 class="font-bold mb-2 text-sm flex items-center gap-2 text-amber-800">📌 ご利用にあたってのお願い</h3>
+                <ul class="list-disc ml-5 space-y-1">
+                    <li>参加者名はフルネームを避け、「名字のみ」や「ニックネーム」にするなど、個人情報の取り扱いにご配慮ください。</li>
+                    <li>公演や調整期間が終了して不要になった場合は、作成者ご自身でのプロジェクト削除をお願いいたします。</li>
                 </ul>
             </div>
 
@@ -76,22 +73,31 @@
                         <label class="block text-base font-bold mb-1">公演・プロジェクト名</label>
                         <input type="text" id="setup-title" maxlength="50" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none">
                     </div>
-                    <div>
-                        <label class="block text-base font-bold mb-1">プロジェクトID <span class="text-red-500 text-xs">(あとから変更できません)</span></label>
+                    <div id="setup-id-section">
+                        <label class="block text-base font-bold mb-1">プロジェクトID <span class="text-red-500 text-xs">(あとから変更不可)</span></label>
                         <div class="flex gap-2">
                             <input type="text" id="setup-id" maxlength="20" class="flex-1 p-3 border-2 rounded-xl font-mono text-lg bg-slate-50" placeholder="project-id">
                             <button id="btn-gen-id" class="bg-indigo-50 px-6 rounded-xl text-indigo-700 font-bold hover:bg-indigo-100 transition-all text-sm">自動生成</button>
                         </div>
+                        <p class="text-xs text-slate-400 mt-1">英数字・ハイフンのみ3～20文字（例： my-project-2025）</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block font-bold mb-1 text-sm">プロジェクトの鍵 (パスワード) <span class="text-xs text-red-500 font-bold">必設</span> <span class="text-xs font-normal text-slate-500">改設現場で入力も必要</span></label>
-                        <input type="text" id="setup-password" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="全員で共有するパスワードを設定">
+                    <!-- 新規作成時のパスワード欄 -->
+                    <div id="pw-new-section">
+                        <label class="block font-bold mb-1 text-sm">パスワード <span class="text-xs font-normal text-slate-500">(任意）設定すると閲覧にパスワードが必要になります</span></label>
+                        <input type="text" id="setup-password" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="パスワード（空白の場合は設定なし）">
+                    </div>
+                    <!-- 設定変更時のパスワード変更欄 -->
+                    <div id="pw-change-section" class="hidden">
+                        <label class="block font-bold mb-1 text-sm">パスワードの変更 <span class="text-xs font-normal text-slate-500">(変更する場合のみ入力）</span></label>
+                        <input type="text" id="setup-password-new" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none mb-2" placeholder="新しいパスワード（空白=変更なし）">
+                        <input type="text" id="setup-password-confirm" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="再入力(確認用）">
+                        <p id="pw-mismatch-msg" class="hidden text-xs text-red-500 mt-1 font-bold">⚠️ 新しいパスワードが一致しません</p>
                     </div>
                     <div>
-                        <label class="block font-bold mb-1 text-sm">参加者名 <span class="text-xs font-normal text-slate-500">カンマ・読点・タブ・改行で区切り / 名前先頭に * で集計非対象</span></label>
+                        <label class="block font-bold mb-1 text-sm">参加者名</label>
                         <textarea id="setup-members" class="w-full p-3 border-2 rounded-xl" rows="2" placeholder="山田, 鈴木, 佐藤"></textarea>
                     </div>
                 </div>
@@ -276,7 +282,11 @@
                 document.getElementById('setup-start').value = projectConfig.startDate;
                 document.getElementById('setup-end').value = projectConfig.endDate;
                 document.getElementById('setup-members').value = projectConfig.members.join(', ');
-                document.getElementById('setup-password').value = projectConfig.password || "";
+                // 編集模式: 新規パスワード欄を隠して変更用UIを表示
+                document.getElementById('pw-new-section').classList.add('hidden');
+                document.getElementById('pw-change-section').classList.remove('hidden');
+                document.getElementById('setup-password-new').value = '';
+                document.getElementById('setup-password-confirm').value = '';
             }
 
             for(let i=0; i<5; i++) {
@@ -318,10 +328,29 @@
             document.querySelectorAll('.slot-chk').forEach(ck => { if(ck.checked) { const d = ck.dataset.day; if(!activeMap[d]) activeMap[d] = []; activeMap[d].push(`slot${ck.dataset.row}`); } });
             
             const finalizedSlots = projectConfig?.finalizedSlots || [];
-            const newPassword = document.getElementById('setup-password').value.trim();
-            await setDoc(doc(db, "projects", id), { title, password: newPassword, startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, updatedAt: serverTimestamp() });
-            // パスワード変更に対応: localStorageも新パスワードで更新する
-            if(newPassword) localStorage.setItem(`pass_${id}`, newPassword);
+            const isEditMode = document.getElementById('pw-change-section') && !document.getElementById('pw-change-section').classList.contains('hidden');
+            let savedPassword = projectConfig?.password || '';
+
+            if(isEditMode) {
+                // 編集模式: 新パスワード入力があれば確認チェック
+                const np = document.getElementById('setup-password-new').value.trim();
+                const cp = document.getElementById('setup-password-confirm').value.trim();
+                if(np || cp) {
+                    if(np !== cp) {
+                        document.getElementById('pw-mismatch-msg').classList.remove('hidden');
+                        return; // 不一致の場合は保存中止
+                    }
+                    savedPassword = np;
+                    document.getElementById('pw-mismatch-msg').classList.add('hidden');
+                }
+                // np・cpが両方空ならパスワードそのまま維持
+            } else {
+                // 新規作成模式: そのままパスワード欄の値を使う
+                savedPassword = document.getElementById('setup-password').value.trim();
+            }
+
+            await setDoc(doc(db, "projects", id), { title, password: savedPassword, startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, updatedAt: serverTimestamp() });
+            if(savedPassword) localStorage.setItem(`pass_${id}`, savedPassword);
             else localStorage.removeItem(`pass_${id}`);
             location.href = `?id=${id}`;
         };
