@@ -53,8 +53,7 @@
                 <h3 class="font-bold mb-3 text-base flex items-center gap-2"><span>💡</span>はじめての方へ（安心・安全に使うためのお願い）</h3>
                 <ul class="list-disc ml-5 space-y-2">
                     <li><strong>お名前の入力について:</strong> 参加する方のお名前は「名字のみ」や「ニックネーム」にするなど、個人情報にご配慮くださいませ🙇‍♀️</li>
-                    <li><strong>合言葉（鍵）のおすすめ:</strong> 劇団のメンバー以外に予定を見られたくない場合は、必ず「プロジェクトの鍵（パスワード）」を設定してくださいね🔒</li>
-                    <li><strong>終わったらお片付けを:</strong> 公演やイベントが無事に終わりましたら、このページを作った代表者様が最後に「削除」をお願いいたします✨</li>
+                    <li><strong>使い終わったら:</strong> 公演等が無事に終了して不要になったプロジェクトは、最後に「削除」をしていただけると助かります✨</li>
                 </ul>
             </div>
 
@@ -65,7 +64,7 @@
                         <input type="text" id="setup-title" maxlength="50" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none">
                     </div>
                     <div>
-                        <label class="block text-base font-bold mb-1">プロジェクトID <span class="text-red-500 text-xs">(変更不可)</span></label>
+                        <label class="block text-base font-bold mb-1">プロジェクトID <span class="text-red-500 text-xs">(あとから変更できません)</span></label>
                         <div class="flex gap-2">
                             <input type="text" id="setup-id" maxlength="20" class="flex-1 p-3 border-2 rounded-xl font-mono text-lg bg-slate-50" placeholder="project-id">
                             <button id="btn-gen-id" class="bg-indigo-50 px-6 rounded-xl text-indigo-700 font-bold hover:bg-indigo-100 transition-all text-sm">自動生成</button>
@@ -75,8 +74,8 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block font-bold mb-1 text-sm text-indigo-600">プロジェクトの鍵 (パスワード)</label>
-                        <input type="text" id="setup-password" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg border-indigo-200" placeholder="推奨：関係者のみに制限する">
+                        <label class="block font-bold mb-1 text-sm">プロジェクトの鍵 (パスワード)</label>
+                        <input type="text" id="setup-password" maxlength="20" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="設定を推奨します。">
                     </div>
                     <div>
                         <label class="block font-bold mb-1 text-sm">参加者名 (カンマ区切り)</label>
