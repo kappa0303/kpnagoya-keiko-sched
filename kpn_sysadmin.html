@@ -12,7 +12,7 @@
     <div class="max-w-6xl mx-auto">
         <h1 class="text-xl md:text-3xl font-bold text-slate-900 mb-4 md:mb-6 flex items-center gap-2 border-b-4 border-indigo-200 pb-3">
             <span>⚙️</span> システム管理ダッシュボード
-            <a href="/" class="ml-auto text-xs md:text-sm bg-slate-200 hover:bg-slate-300 px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition font-normal text-slate-700">ホームへ</a>
+            <a href="./" class="ml-auto text-xs md:text-sm bg-slate-200 hover:bg-slate-300 px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition font-normal text-slate-700">ホームへ</a>
         </h1>
 
         <div id="loading" class="text-center py-10 font-bold text-slate-500 hidden">データを読み込み中...</div>
@@ -83,7 +83,7 @@
         const psw = prompt("管理者パスワードを入力してください:");
         if (psw !== "Kangeki758kcb") {
             alert("アクセスが拒否されました。");
-            window.location.href = "/";
+            window.location.href = "./";
         } else {
             initDashboard();
         }

@@ -466,7 +466,7 @@
             batch.delete(doc(db, "projects", projectId));
             await batch.commit();
             await showAlert("削除が完了しました。");
-            location.href = "/";
+            location.href = location.pathname;
         };
 
         async function loadProject(id) {
