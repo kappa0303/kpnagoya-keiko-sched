@@ -291,8 +291,6 @@
         const formatDateStr = (date) => date.toLocaleDateString('sv-SE');
         const parseDateStr = (dateStr) => new Date(dateStr + 'T00:00:00');
 
-        if (!projectId) { showAdminMode(false); } else { loadProject(projectId); }
-
         let isEditingProject = false;
         function showAdminMode(isEdit = false) {
             isEditingProject = isEdit;
@@ -334,6 +332,9 @@
             }
         }
 
+        // showAdminMode定義後にディスパッチ
+        if (!projectId) { showAdminMode(false); } else { loadProject(projectId); }
+
         document.getElementById('btn-gen-id').onclick = () => document.getElementById('setup-id').value = Math.random().toString(36).substring(2, 12);
         document.getElementById('btn-cancel-edit').onclick = () => location.reload();
         
@@ -374,12 +375,12 @@
                         return;
                     }
                     document.getElementById('pw-current-mismatch').classList.add('hidden');
-                    if(np !== cp) {
+                    if(np && np !== cp) {
                         document.getElementById('pw-mismatch-msg').classList.remove('hidden');
                         return;
                     }
                     document.getElementById('pw-mismatch-msg').classList.add('hidden');
-                    savedPassword = np; // 空なら削除、値があれば更新
+                    if(np) savedPassword = np; // 新パスワードが入力済みの場合のみ更新、空なら現在のまま維持
                 }
             } else {
                 // 新規作成モード: パスワード欄の値をそのまま使う
@@ -540,12 +541,16 @@
                 const dayStr = isH ? '祝' : dJ[d.getDay()];
                 const dColor = isH ? 'text-red-600' : (d.getDay()===0?'text-red-500':(d.getDay()===6?'text-blue-500':''));
                 const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
-                const slotLabel = slotObj ? `${slotObj.label}<span class="text-[10px] font-normal text-slate-400 ml-1">(${slotObj.time})</span>` : '';
+                const slotLabel = slotObj ? slotObj.label : '';
+                const slotTime  = slotObj ? slotObj.time  : '';
                 const noBadge = `<span class="bg-indigo-100 text-indigo-700 font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px] flex-shrink-0">${idx+1}</span>`;
                 html += `<div class="flex items-center gap-1.5 border-b border-slate-200 py-1.5 last:border-0" data-idx="${idx}">
                     ${noBadge}
-                    <span class="font-bold text-xs whitespace-nowrap w-16 flex-shrink-0"><span class="${dColor}">${d.getMonth()+1}/${d.getDate()}(${dayStr})</span></span>
-                    <span class="text-xs font-bold w-16 flex-shrink-0">${slotLabel}</span>
+                    <span class="font-bold text-xs whitespace-nowrap w-14 flex-shrink-0"><span class="${dColor}">${d.getMonth()+1}/${d.getDate()}(${dayStr})</span></span>
+                    <span class="flex flex-col leading-tight w-14 flex-shrink-0">
+                        <span class="font-bold text-xs whitespace-nowrap">${slotLabel}</span>
+                        <span class="text-[10px] text-slate-400 whitespace-nowrap">${slotTime}</span>
+                    </span>
                     <input type="text" class="confirmed-venue flex-1 min-w-0 px-2 py-1 border rounded text-xs" placeholder="稽古場所" data-date="${f.date}" data-slot="${f.slotId}" value="${f.venue || ''}">
                     <input type="text" class="confirmed-notes flex-1 min-w-0 px-2 py-1 border rounded text-xs" placeholder="備考" data-date="${f.date}" data-slot="${f.slotId}" value="${f.notes || ''}">
                 </div>`;
