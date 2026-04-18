@@ -17,9 +17,11 @@
         .bg-partial { background-color: #f59e0b !important; color: white !important; }
         .bg-ng { background-color: #ef4444 !important; color: white !important; }
         .bg-clr { background-color: #cbd5e1 !important; color: #475569 !important; }
-        .slot-btn { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; opacity: 0.2; transition: 0.2s; cursor: pointer; border: 2px solid transparent; }
+        .slot-btn { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; opacity: 0.2; transition: 0.2s; cursor: pointer; border: 2px solid transparent; }
+        @media (min-width: 768px) { .slot-btn { width: 40px; height: 40px; font-size: 1.25rem; } }
         .slot-btn.active { opacity: 1; transform: scale(1.1); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        .bulk-btn { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.3rem; color: white; transition: 0.2s; cursor: pointer; border: none; }
+        .bulk-btn { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: white; transition: 0.2s; cursor: pointer; border: none; }
+        @media (min-width: 768px) { .bulk-btn { width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; } }
         .bulk-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .day-sat { background-color: #eff6ff !important; }
         .day-sun { background-color: #fff1f2 !important; }
@@ -117,7 +119,7 @@
                 <div id="admin-actions" class="flex flex-col gap-3">
                     <button id="btn-save-project" class="w-full bg-indigo-600 text-white font-bold py-5 rounded-2xl shadow-xl hover:bg-indigo-700 text-2xl transition-all">上記の内容で保存・公開する</button>
                     <button id="btn-cancel-edit" class="hidden w-full text-slate-400 font-bold py-2">キャンセルして戻る</button>
-                    <button id="btn-delete-project" class="hidden w-full text-red-400 text-sm mt-10 hover:underline">このプロジェクトを完全に削除する</button>
+                    <button id="btn-delete-project" class="hidden w-full bg-red-50 text-red-600 font-bold py-4 rounded-xl mt-6 border border-red-200 hover:bg-red-100 transition-all">🗑️ このプロジェクトを完全に削除する</button>
                 </div>
             </div>
         </div>
@@ -128,23 +130,23 @@
                 <p id="disp-period" class="text-slate-500 font-bold bg-white px-6 py-2 rounded-full shadow-sm inline-block border text-base"></p>
             </header>
 
-            <div class="mb-6 flex justify-center border-b-2 overflow-x-auto bg-white md:bg-transparent">
-                <button data-tab="input" class="tab-btn active px-8 py-5 font-bold text-lg text-slate-400">予定入力</button>
-                <button data-tab="summary" class="tab-btn px-8 py-5 font-bold text-lg text-slate-400">集計結果</button>
-                <button id="btn-open-edit" class="px-6 py-5 font-bold text-indigo-400 ml-auto flex items-center gap-1">⚙️ 設定変更</button>
+            <div class="mb-4 md:mb-6 flex justify-center border-b-2 overflow-x-auto bg-white md:bg-transparent">
+                <button data-tab="input" class="tab-btn active px-3 md:px-8 py-4 md:py-5 font-bold text-sm md:text-lg text-slate-400 whitespace-nowrap">予定入力</button>
+                <button data-tab="summary" class="tab-btn px-3 md:px-8 py-4 md:py-5 font-bold text-sm md:text-lg text-slate-400 whitespace-nowrap">集計結果</button>
+                <button id="btn-open-edit" class="px-3 md:px-6 py-4 md:py-5 font-bold text-indigo-400 ml-auto flex items-center gap-1 text-sm md:text-base whitespace-nowrap">⚙️ 設定・削除</button>
             </div>
 
             <div id="tab-input" class="tab-content">
                 <div class="bg-white p-4 md:p-8 rounded-3xl shadow-xl border border-slate-100">
-                    <div class="mb-8">
-                        <label class="block text-xl font-bold mb-3 text-slate-700">1. お名前を選択してください</label>
-                        <select id="user-select" class="w-full p-4 border-2 rounded-2xl font-bold text-slate-800 bg-slate-50 focus:ring-4 focus:ring-indigo-100"></select>
+                    <div class="mb-6 md:mb-8">
+                        <label class="block text-base md:text-xl font-bold mb-2 md:mb-3 text-slate-700">1. お名前を選択してください</label>
+                        <select id="user-select" class="w-full p-3 md:p-4 border-2 rounded-xl md:rounded-2xl font-bold text-slate-800 bg-slate-50 text-base md:text-lg focus:ring-4 focus:ring-indigo-100"></select>
                     </div>
 
-                    <div id="input-area" class="hidden space-y-10">
-                        <div class="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 shadow-inner">
-                            <h3 class="font-bold text-indigo-900 mb-5 text-xl border-b border-indigo-200 pb-2">一括入力パネル</h3>
-                            <div id="bulk-container" class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8"></div>
+                    <div id="input-area" class="hidden space-y-6 md:space-y-10">
+                        <div class="bg-indigo-50 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-indigo-100 shadow-inner">
+                            <h3 class="font-bold text-indigo-900 mb-3 md:mb-5 text-base md:text-xl border-b border-indigo-200 pb-2">一括入力パネル</h3>
+                            <div id="bulk-container" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 md:gap-x-12 gap-y-4 md:gap-y-8"></div>
                         </div>
 
                         <div id="grid-container" class="overflow-x-auto border-2 rounded-3xl shadow-inner max-h-[60vh]"></div>
@@ -308,16 +310,16 @@
         function renderInputGrid() {
             const container = document.getElementById('grid-container');
             const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
-            let html = `<table class="w-full text-base"><thead class="bg-slate-50 sticky-header text-slate-500 border-b-2"><tr><th class="p-4 border text-center">日付</th>`;
-            projectConfig.slots.forEach(s => html += `<th class="p-4 border text-center font-bold text-lg leading-tight">${s.label}<br><span class="font-normal text-[11px] opacity-60 tracking-tighter">${s.time}</span></th>`);
+            let html = `<table class="w-full text-sm md:text-base"><thead class="bg-slate-50 sticky-header text-slate-500 border-b-2"><tr><th class="p-2 md:p-4 border text-center">日付</th>`;
+            projectConfig.slots.forEach(s => html += `<th class="p-1 md:p-4 border text-center font-bold text-[10px] md:text-lg leading-tight">${s.label}<br><span class="font-normal text-[8px] md:text-[11px] opacity-60 tracking-tighter">${s.time}</span></th>`);
             html += `</tr></thead><tbody class="bg-white">`;
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), act = projectConfig.activeMap[isH?'H':day] || [];
                 const rC = isH ? 'day-hol' : (day===0?'day-sun':(day===6?'day-sat':''));
-                html += `<tr class="${rC} border-b hover:bg-slate-50/50"><td class="p-2 border font-bold text-slate-700 text-center text-lg">${d.getMonth()+1}/${d.getDate()}<br><span class="text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
+                html += `<tr class="${rC} border-b hover:bg-slate-50/50"><td class="p-1 md:p-2 border font-bold text-slate-700 text-center text-xs md:text-lg">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
                 projectConfig.slots.forEach(s => {
                     const st = currentAvailability[dS]?.[s.id] || "";
-                    html += `<td class="p-1 border text-center">` + (act.includes(s.id) ? `<div class="flex justify-center gap-3 slot-group" data-date="${dS}" data-slot="${s.id}" data-day="${day}" data-hol="${isH}"><button class="slot-btn bg-ok ${st==='◯'?'active':''}" onclick="updateSlot(this,'◯')">◯</button><button class="slot-btn bg-partial ${st==='△'?'active':''}" onclick="updateSlot(this,'△')">△</button><button class="slot-btn bg-ng ${st==='✕'?'active':''}" onclick="updateSlot(this,'✕')">✕</button></div>` : `<span class="opacity-10">-</span>`) + `</td>`;
+                    html += `<td class="p-0.5 md:p-1 border text-center">` + (act.includes(s.id) ? `<div class="flex justify-center gap-0.5 md:gap-3 slot-group" data-date="${dS}" data-slot="${s.id}" data-day="${day}" data-hol="${isH}"><button class="slot-btn bg-ok ${st==='◯'?'active':''}" onclick="updateSlot(this,'◯')">◯</button><button class="slot-btn bg-partial ${st==='△'?'active':''}" onclick="updateSlot(this,'△')">△</button><button class="slot-btn bg-ng ${st==='✕'?'active':''}" onclick="updateSlot(this,'✕')">✕</button></div>` : `<span class="opacity-10">-</span>`) + `</td>`;
                 });
                 html += `</tr>`;
             }
@@ -355,8 +357,8 @@
         function renderSummary() {
             const container = document.getElementById('summary-container'); const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
             const targetMembers = projectConfig.members.filter(m => !m.startsWith('*')).map(m => m.replace('*',''));
-            let html = `<table class="w-full border-collapse"><thead class="bg-slate-50 sticky-header border-b-2"><tr><th class="p-3 border text-center text-sm">日付</th><th class="p-3 border text-center text-sm">枠</th>`;
-            projectConfig.members.forEach(m => html += `<th class="p-3 border text-center font-bold text-sm">${m.replace('*','')}</th>`);
+            let html = `<table class="w-full border-collapse"><thead class="bg-slate-50 sticky-header border-b-2"><tr><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm">日付</th><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm">枠</th>`;
+            projectConfig.members.forEach(m => html += `<th class="p-1 md:p-3 border text-center font-bold text-[10px] md:text-sm break-all">${m.replace('*','')}</th>`);
             html += `</tr></thead><tbody>`;
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), actS = projectConfig.activeMap[isH ? 'H' : day] || [];
@@ -366,11 +368,11 @@
                     const noNg = (statuses.filter(s => s === '✕').length === 0 && statuses.filter(s => s).length === targetMembers.length);
                     const rowStatus = isAllOk ? 'summary-all-ok' : (noNg ? 'summary-no-ng' : '');
                     html += `<tr class="${isH?'day-hol':(day===0?'day-sun':(day===6?'day-sat':''))} ${rowStatus} border-b">`;
-                    if(idx === 0) html += `<td class="p-4 border font-bold align-middle text-center text-xl leading-tight" rowspan="${actS.length}">${d.getMonth()+1}/${d.getDate()}<br><span class="text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
-                    html += `<td class="p-2 border text-center align-middle font-bold text-base leading-tight">${slot.label}<br><span class="text-[9px] font-normal opacity-50">${slot.time}</span></td>`;
+                    if(idx === 0) html += `<td class="p-1 md:p-4 border font-bold align-middle text-center text-sm md:text-xl leading-tight" rowspan="${actS.length}">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
+                    html += `<td class="p-1 md:p-2 border text-center align-middle font-bold text-xs md:text-base leading-tight">${slot.label}<br><span class="text-[8px] md:text-[9px] font-normal opacity-50">${slot.time}</span></td>`;
                     projectConfig.members.forEach(m => {
                         const name = m.replace('*',''); const s = allResponses[name]?.availability?.[dS]?.[slotId];
-                        html += `<td class="p-1 border text-center font-bold text-3xl ${s==='◯'?'mark-ok':(s==='△'?'mark-partial':(s==='✕'?'mark-ng':'text-slate-200'))}">${s || '-'}</td>`;
+                        html += `<td class="p-0.5 md:p-1 border text-center font-bold text-lg md:text-3xl ${s==='◯'?'mark-ok':(s==='△'?'mark-partial':(s==='✕'?'mark-ng':'text-slate-200'))}">${s || '-'}</td>`;
                     });
                     html += `</tr>`;
                 });
