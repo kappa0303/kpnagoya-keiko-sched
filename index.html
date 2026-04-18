@@ -317,13 +317,14 @@
         function renderInputGrid() {
             const container = document.getElementById('grid-container');
             const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
-            let html = `<table class="w-full text-sm md:text-base"><thead class="bg-slate-50 sticky-header text-slate-500 border-b-2"><tr><th class="p-2 md:p-4 border text-center">日付</th>`;
+            let html = `<table class="w-full text-sm md:text-base"><thead class="bg-slate-50 sticky-header text-slate-500 border-b-2 z-30"><tr><th class="p-2 md:p-4 border-y border-r-2 text-center sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">日付</th>`;
             projectConfig.slots.forEach(s => html += `<th class="p-1 md:p-4 border text-center font-bold text-xs md:text-base leading-snug">${s.label}<br><span class="font-normal text-[10px] md:text-xs opacity-75 tracking-tight">${s.time}</span></th>`);
             html += `</tr></thead><tbody class="bg-white">`;
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), act = projectConfig.activeMap[isH?'H':day] || [];
                 const rC = isH ? 'day-hol' : (day===0?'day-sun':(day===6?'day-sat':''));
-                html += `<tr class="${rC} border-b hover:bg-slate-50/50"><td class="p-1 md:p-2 border font-bold text-slate-700 text-center text-xs md:text-lg">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
+                const cellBg = isH ? 'bg-red-50' : (day===0?'bg-rose-50':(day===6?'bg-blue-50':'bg-white'));
+                html += `<tr class="${rC} border-b hover:opacity-90"><td class="p-1 md:p-2 border-y border-r-2 border-r-slate-200 font-bold text-slate-700 text-center text-xs md:text-lg sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
                 projectConfig.slots.forEach(s => {
                     const st = currentAvailability[dS]?.[s.id] || "";
                     html += `<td class="p-0.5 md:p-1 border text-center">` + (act.includes(s.id) ? `<div class="flex justify-center gap-0.5 md:gap-3 slot-group" data-date="${dS}" data-slot="${s.id}" data-day="${day}" data-hol="${isH}"><button class="slot-btn bg-ok ${st==='◯'?'active':''}" onclick="updateSlot(this,'◯')">◯</button><button class="slot-btn bg-partial ${st==='△'?'active':''}" onclick="updateSlot(this,'△')">△</button><button class="slot-btn bg-ng ${st==='✕'?'active':''}" onclick="updateSlot(this,'✕')">✕</button></div>` : `<span class="opacity-10">-</span>`) + `</td>`;
@@ -366,7 +367,7 @@
         function renderSummary() {
             const container = document.getElementById('summary-container'); const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
             const targetMembers = projectConfig.members.filter(m => !m.startsWith('*')).map(m => m.replace('*',''));
-            let html = `<table class="w-full border-collapse"><thead class="bg-slate-50 sticky-header border-b-2"><tr><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm">日付</th><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm">枠</th>`;
+            let html = `<table class="w-full border-collapse"><thead class="bg-slate-50 sticky-header border-b-2 z-30"><tr><th class="p-1 md:p-3 border-y border-r text-center text-[10px] md:text-sm sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">日付</th><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm">枠</th>`;
             projectConfig.members.forEach(m => html += `<th class="p-1 md:p-3 border text-center font-bold text-[10px] md:text-sm break-all">${m.replace('*','')}</th>`);
             html += `</tr></thead><tbody>`;
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
@@ -376,8 +377,9 @@
                     const okC = statuses.filter(s => s === '◯').length; const isAllOk = (okC === targetMembers.length && targetMembers.length > 0);
                     const noNg = (statuses.filter(s => s === '✕').length === 0 && statuses.filter(s => s).length === targetMembers.length);
                     const rowStatus = isAllOk ? 'summary-all-ok' : (noNg ? 'summary-no-ng' : '');
+                    const cellBg = isH ? 'bg-red-50' : (day===0?'bg-rose-50':(day===6?'bg-blue-50':'bg-white'));
                     html += `<tr class="${isH?'day-hol':(day===0?'day-sun':(day===6?'day-sat':''))} ${rowStatus} border-b">`;
-                    if(idx === 0) html += `<td class="p-1 md:p-4 border font-bold align-middle text-center text-sm md:text-xl leading-tight" rowspan="${actS.length}">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
+                    if(idx === 0) html += `<td class="p-1 md:p-4 border-y border-r font-bold align-middle text-center text-sm md:text-xl leading-tight sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]" rowspan="${actS.length}">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
                     html += `<td class="p-1 md:p-2 border text-center align-middle font-bold text-xs md:text-base leading-tight">${slot.label}<br><span class="text-[8px] md:text-[9px] font-normal opacity-50">${slot.time}</span></td>`;
                     projectConfig.members.forEach(m => {
                         const name = m.replace('*',''); const s = allResponses[name]?.availability?.[dS]?.[slotId];
