@@ -325,6 +325,7 @@
         function showApp() {
             document.getElementById('main-view').classList.remove('hidden');
             document.getElementById('disp-title').innerText = projectConfig.title;
+            window.aggregationTargets = window.aggregationTargets || new Set(projectConfig.members.filter(m => !m.startsWith('*')).map(m => m.replace('*','')));
             document.getElementById('disp-period').innerText = `${projectConfig.startDate} 〜 ${projectConfig.endDate}`;
             document.getElementById('btn-copy-url').onclick = async () => { await navigator.clipboard.writeText(window.location.href); const toast = document.getElementById('copy-toast'); toast.classList.remove('opacity-0'); setTimeout(() => toast.classList.add('opacity-0'), 2000); };
             const sel = document.getElementById('user-select');
@@ -409,18 +410,29 @@
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         };
 
+        window.toggleAggregation = (name) => {
+            if(window.aggregationTargets.has(name)) window.aggregationTargets.delete(name);
+            else window.aggregationTargets.add(name);
+            renderSummary();
+        };
+
         function renderSummary() {
             const container = document.getElementById('summary-container'); const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
-            const targetMembers = projectConfig.members.filter(m => !m.startsWith('*')).map(m => m.replace('*',''));
+            const actualTargets = Array.from(window.aggregationTargets || []);
             let html = `<table class="w-full border-collapse"><thead class="bg-slate-50 sticky-header border-b-2 z-30"><tr><th class="p-1 md:p-3 border-y border-r text-center text-[10px] md:text-sm sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-12 md:w-28 min-w-[3rem] md:min-w-[7rem]">日付</th><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm w-10 md:w-20 min-w-[2.5rem] md:min-w-[5rem]">枠</th>`;
-            projectConfig.members.forEach(m => html += `<th class="p-1 md:p-3 border text-center font-bold text-[10px] md:text-sm break-all w-12 md:w-24 min-w-[3rem] md:min-w-[6rem]">${m.replace('*','')}</th>`);
+            projectConfig.members.forEach(m => {
+                const rawName = m.replace('*', '');
+                const isT = window.aggregationTargets.has(rawName);
+                let bgCls = isT ? "bg-indigo-50" : "bg-white opacity-40";
+                html += `<th class="p-1 md:p-3 border text-center font-bold text-[10px] md:text-sm break-all w-12 md:w-24 min-w-[3rem] md:min-w-[6rem] cursor-pointer hover:bg-slate-100 transition shadow-inner ${bgCls}" onclick="toggleAggregation('${rawName}')" title="クリックで集計対象のON/OFFを切り替え"><div class="flex flex-col items-center gap-1"><span>${rawName}</span><input type="checkbox" onclick="event.stopPropagation(); toggleAggregation('${rawName}')" ${isT ? 'checked' : ''} class="w-3 h-3 md:w-4 md:h-4 cursor-pointer accent-indigo-600"></div></th>`;
+            });
             html += `</tr></thead><tbody>`;
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), actS = projectConfig.activeMap[isH ? 'H' : day] || [];
                 actS.forEach((slotId, idx) => {
-                    const slot = projectConfig.slots.find(s => s.id === slotId); const statuses = targetMembers.map(m => allResponses[m]?.availability?.[dS]?.[slotId]);
-                    const okC = statuses.filter(s => s === '◯').length; const isAllOk = (okC === targetMembers.length && targetMembers.length > 0);
-                    const noNg = (statuses.filter(s => s === '✕').length === 0 && statuses.filter(s => s).length === targetMembers.length);
+                    const slot = projectConfig.slots.find(s => s.id === slotId); const statuses = actualTargets.map(m => allResponses[m]?.availability?.[dS]?.[slotId]);
+                    const okC = statuses.filter(s => s === '◯').length; const isAllOk = (okC === actualTargets.length && actualTargets.length > 0);
+                    const noNg = (statuses.filter(s => s === '✕').length === 0 && statuses.filter(s => s).length === actualTargets.length && actualTargets.length > 0);
                     const rowStatus = isAllOk ? 'summary-all-ok' : (noNg ? 'summary-no-ng' : '');
                     const cellBg = isH ? 'bg-red-50' : (day===0?'bg-rose-50':(day===6?'bg-blue-50':'bg-white'));
                     html += `<tr class="${isH?'day-hol':(day===0?'day-sun':(day===6?'day-sat':''))} ${rowStatus} border-b">`;
