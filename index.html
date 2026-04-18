@@ -99,7 +99,7 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-lg font-bold mb-2 text-indigo-700">時間枠と曜日別設定</label>
+                    <label class="block text-lg font-bold mb-2 text-indigo-700">時間枠と曜日別設定 <span class="text-xs text-red-500 font-bold ml-2 md:hidden">➡️ スマホでは右端の曜日チェック忘れに注意！</span></label>
                     <div class="flex flex-wrap gap-2 mb-3 items-center">
                         <span class="text-xs font-bold text-slate-500">🏭 施設のひな形：</span>
                         <button type="button" id="tpl-yousquare" class="px-4 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-bold hover:bg-indigo-100 transition shadow-sm active:scale-95">ユースクエア</button>
@@ -109,11 +109,11 @@
                         <table class="w-full text-left bg-white text-sm">
                             <thead class="bg-slate-50 border-b-2">
                                 <tr>
-                                    <th class="p-4 font-bold text-slate-500 w-2/5">枠名・時間</th>
-                                    <th class="p-1 text-center">月</th><th class="p-1 text-center">火</th>
-                                    <th class="p-1 text-center">水</th><th class="p-1 text-center">木</th>
-                                    <th class="p-1 text-center">金</th><th class="p-1 text-center text-blue-600">土</th>
-                                    <th class="p-1 text-center text-red-600">日</th><th class="p-1 text-center text-red-700 bg-red-50">祝</th>
+                                    <th class="p-2 md:p-4 font-bold text-slate-500 w-24 md:w-2/5 text-[11px] md:text-base text-center md:text-left align-middle">枠名・時間</th>
+                                    <th class="p-1 text-center text-xs md:text-base">月</th><th class="p-1 text-center text-xs md:text-base">火</th>
+                                    <th class="p-1 text-center text-xs md:text-base">水</th><th class="p-1 text-center text-xs md:text-base">木</th>
+                                    <th class="p-1 text-center text-xs md:text-base">金</th><th class="p-1 text-center text-xs md:text-base text-blue-600">土</th>
+                                    <th class="p-1 text-center text-xs md:text-base text-red-600">日</th><th class="p-1 text-center text-[10px] md:text-base text-red-700 bg-red-50">祝</th>
                                 </tr>
                             </thead>
                             <tbody id="setup-slot-grid"></tbody>
@@ -242,8 +242,8 @@
                 const tr = document.createElement('tr');
                 const lab = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].label : dL[i];
                 const tim = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].time : dT[i];
-                tr.innerHTML = `<td class="p-3 border"><div class="flex items-center gap-3"><input type="text" maxlength="10" class="slot-label-in flex-1 p-2 border-2 rounded-xl font-bold text-base" value="${lab}" placeholder="枠名"><input type="text" maxlength="20" class="slot-time-in w-32 p-2 border-2 rounded-xl text-base" value="${tim}" placeholder="時間"></div></td>` + 
-                [1,2,3,4,5,6,0, 'H'].map(d => `<td class="p-1 border text-center"><input type="checkbox" class="slot-chk w-6 h-6" data-row="${i}" data-day="${d}" ${(isEdit && projectConfig.activeMap[d] ? projectConfig.activeMap[d].includes(`slot${i}`) : (((d==='H'||d===0||d===6) && i !== 4) || i === 3))?'checked':''}></td>`).join('');
+                tr.innerHTML = `<td class="p-1.5 md:p-3 border align-middle"><div class="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3"><input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:p-2 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名"><input type="text" maxlength="20" class="slot-time-in w-full lg:w-32 p-1 md:p-2 border-2 rounded-md text-[10px] md:text-base text-center lg:text-left" value="${tim}" placeholder="時間"></div></td>` + 
+                [1,2,3,4,5,6,0, 'H'].map(d => `<td class="p-0.5 md:p-1 border text-center align-middle"><input type="checkbox" class="slot-chk w-4 h-4 md:w-6 md:h-6" data-row="${i}" data-day="${d}" ${(isEdit && projectConfig.activeMap[d] ? projectConfig.activeMap[d].includes(`slot${i}`) : (((d==='H'||d===0||d===6) && i !== 4) || i === 3))?'checked':''}></td>`).join('');
                 grid.appendChild(tr);
             }
         }
