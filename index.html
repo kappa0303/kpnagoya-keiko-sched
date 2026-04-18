@@ -107,7 +107,7 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-lg font-bold mb-2 text-indigo-700">時間枠と曜日別設定 <span class="text-xs text-red-500 font-bold ml-2 md:hidden">➡️ スマホでは右端の曜日チェック忘れに注意！</span></label>
+                    <label class="block text-lg font-bold mb-2 text-indigo-700">時間枠と曜日別設定</label>
                     <div class="flex flex-wrap gap-2 mb-3 items-center">
                         <span class="text-xs font-bold text-slate-500">🏭 施設のひな形：</span>
                         <button type="button" id="tpl-yousquare" class="px-4 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-bold hover:bg-indigo-100 transition shadow-sm active:scale-95">ユースクエア</button>
@@ -389,7 +389,7 @@
 
         window.updateSlot = (btn, status, forceGroup = null) => { const parent = forceGroup || btn.parentElement; const { date, slot } = parent.dataset; parent.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active')); if(status && btn) { btn.classList.add('active'); if(!currentAvailability[date]) currentAvailability[date] = {}; currentAvailability[date][slot] = status; } else if(!status) { if(currentAvailability[date]) delete currentAvailability[date][slot]; } };
 
-        document.getElementById('btn-save-resp').onclick = async () => { const u = document.getElementById('user-select').value; if(!u) return alert("名前選択してください"); await setDoc(doc(db, "projects", projectId, "responses", u), { userName: u, availability: currentAvailability, comment: document.getElementById('comment-box').value, updatedAt: serverTimestamp() }); alert("保存しました"); };
+        document.getElementById('btn-save-resp').onclick = async () => { const u = document.getElementById('user-select').value; if(!u) return alert("名前選択してください"); await setDoc(doc(db, "projects", projectId, "responses", u), { userName: u, availability: currentAvailability, comment: document.getElementById('comment-box').value, updatedAt: serverTimestamp() }); alert(`${u}さんの予定を登録しました`); };
 
         window.exportCSV = () => {
             const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
@@ -412,8 +412,8 @@
         function renderSummary() {
             const container = document.getElementById('summary-container'); const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
             const targetMembers = projectConfig.members.filter(m => !m.startsWith('*')).map(m => m.replace('*',''));
-            let html = `<table class="w-full border-collapse"><thead class="bg-slate-50 sticky-header border-b-2 z-30"><tr><th class="p-1 md:p-3 border-y border-r text-center text-[10px] md:text-sm sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">日付</th><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm">枠</th>`;
-            projectConfig.members.forEach(m => html += `<th class="p-1 md:p-3 border text-center font-bold text-[10px] md:text-sm break-all">${m.replace('*','')}</th>`);
+            let html = `<table class="w-full border-collapse"><thead class="bg-slate-50 sticky-header border-b-2 z-30"><tr><th class="p-1 md:p-3 border-y border-r text-center text-[10px] md:text-sm sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-12 md:w-28 min-w-[3rem] md:min-w-[7rem]">日付</th><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm w-10 md:w-20 min-w-[2.5rem] md:min-w-[5rem]">枠</th>`;
+            projectConfig.members.forEach(m => html += `<th class="p-1 md:p-3 border text-center font-bold text-[10px] md:text-sm break-all w-12 md:w-24 min-w-[3rem] md:min-w-[6rem]">${m.replace('*','')}</th>`);
             html += `</tr></thead><tbody>`;
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), actS = projectConfig.activeMap[isH ? 'H' : day] || [];
