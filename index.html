@@ -98,8 +98,13 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-lg font-bold mb-3 text-indigo-700">時間枠と曜日別設定</label>
+                <div class="mb-6">
+                    <label class="block text-lg font-bold mb-2 text-indigo-700">時間枠と曜日別設定</label>
+                    <div class="flex flex-wrap gap-2 mb-3 items-center">
+                        <span class="text-xs font-bold text-slate-500">🏭 施設のひな形：</span>
+                        <button type="button" id="tpl-yousquare" class="px-4 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-bold hover:bg-indigo-100 transition shadow-sm active:scale-95">ユースクエア</button>
+                        <button type="button" id="tpl-actenon" class="px-4 py-1.5 bg-teal-50 text-teal-700 border border-teal-200 rounded-full text-xs font-bold hover:bg-teal-100 transition shadow-sm active:scale-95">アクテノン</button>
+                    </div>
                     <div class="overflow-x-auto border-2 rounded-2xl">
                         <table class="w-full text-left bg-white text-sm">
                             <thead class="bg-slate-50 border-b-2">
@@ -245,6 +250,14 @@
 
         document.getElementById('btn-gen-id').onclick = () => document.getElementById('setup-id').value = Math.random().toString(36).substring(2, 12);
         document.getElementById('btn-cancel-edit').onclick = () => location.reload();
+        
+        const setTemplate = (times, labels) => {
+            document.querySelectorAll('.slot-label-in').forEach((el, i) => el.value = labels[i]);
+            document.querySelectorAll('.slot-time-in').forEach((el, i) => el.value = times[i]);
+        };
+        document.getElementById('tpl-yousquare').onclick = () => setTemplate(["09:30-12:30", "12:30-15:30", "15:30-18:30", "18:30-21:30", ""], ["午前", "午後", "夕方", "夜間", ""]);
+        document.getElementById('tpl-actenon').onclick = () => setTemplate(["09:30-12:00", "12:30-15:00", "15:30-18:00", "18:30-22:00", ""], ["午前", "午後", "夕方", "夜間", ""]);
+
         document.getElementById('btn-open-edit').onclick = () => {
             const pass = projectConfig.password ? prompt("設定変更にはパスワードが必要です") : "";
             if(projectConfig.password && pass !== projectConfig.password) return alert("パスワード不一致");
