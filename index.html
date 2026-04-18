@@ -152,6 +152,7 @@
             <div class="mb-4 md:mb-6 flex justify-center border-b-2 overflow-x-auto bg-white md:bg-transparent">
                 <button data-tab="input" class="tab-btn active px-3 md:px-8 py-4 md:py-5 font-bold text-sm md:text-lg text-slate-400 whitespace-nowrap">予定入力</button>
                 <button data-tab="summary" class="tab-btn px-3 md:px-8 py-4 md:py-5 font-bold text-sm md:text-lg text-slate-400 whitespace-nowrap">集計結果</button>
+                <button data-tab="confirmed" class="tab-btn px-3 md:px-8 py-4 md:py-5 font-bold text-sm md:text-lg text-slate-400 whitespace-nowrap">確定日程</button>
                 <button id="btn-open-edit" class="px-3 md:px-6 py-4 md:py-5 font-bold text-indigo-400 ml-auto flex items-center gap-1 text-sm md:text-base whitespace-nowrap">⚙️ 設定・削除</button>
             </div>
 
@@ -181,13 +182,36 @@
             </div>
 
             <div id="tab-summary" class="tab-content hidden">
+                <div class="mb-4 bg-indigo-50 border border-indigo-100 p-4 rounded-2xl shadow-sm text-sm text-slate-700 leading-relaxed">
+                    <p class="font-bold text-indigo-900 mb-2">💡 集計画面の使い方</p>
+                    <ul class="list-disc ml-5 space-y-1">
+                        <li><strong>参加者の除外:</strong> 表の1行目にある「参加者の名前」をタップすると、その人を集計対象（背景の自動色付け）から除外できます。</li>
+                        <li><strong>日程の確定:</strong> 各日付の「枠名（午前など）」にあるチェックボックスを選択して保存すると、その日を「確定日程」として皆に知らせることができます。</li>
+                    </ul>
+                </div>
                 <div class="mb-4 flex flex-wrap justify-between items-end px-2 gap-3">
                     <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2 text-slate-800"><span class="text-2xl">📊</span> 全員の入力状況</h2>
-                    <button onclick="window.exportCSV()" class="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-xl text-xs md:text-sm font-bold shadow-md hover:bg-slate-700 active:scale-95 transition">
-                        <span>⬇️ CSVでエクスポート</span>
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="window.saveConfirmedSchedule()" class="flex items-center gap-1 bg-rose-500 text-white px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold shadow-md hover:bg-rose-600 active:scale-95 transition">
+                            <span>✅ 確定を保存</span>
+                        </button>
+                        <button onclick="window.exportCSV()" class="flex items-center gap-1 bg-slate-800 text-white px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold shadow-md hover:bg-slate-700 active:scale-95 transition">
+                            <span>⬇️ CSV出力</span>
+                        </button>
+                    </div>
                 </div>
                 <div id="summary-container" class="bg-white p-2 md:p-8 rounded-3xl shadow-xl overflow-x-auto border border-slate-100"></div>
+            </div>
+
+            <div id="tab-confirmed" class="tab-content hidden">
+                <div class="bg-white p-4 md:p-8 rounded-3xl shadow-xl border border-slate-100">
+                    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                        <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2 text-slate-800"><span class="text-2xl">📅</span> 確定した稽古日程</h2>
+                        <button onclick="window.copyConfirmedText()" class="bg-slate-100 border-2 border-slate-200 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs md:text-sm font-bold shadow-sm transition active:scale-95">📋 テキストでコピー</button>
+                    </div>
+                    <div id="confirmed-list" class="space-y-3 p-4 md:p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 text-sm md:text-lg">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -339,7 +363,7 @@
                 renderInputGrid(); renderBulkButtons();
             };
             onSnapshot(query(collection(db, "projects", projectId, "responses")), (s) => { s.docs.forEach(d => allResponses[d.id] = d.data()); if(document.querySelector('.tab-btn.active').dataset.tab === 'summary') renderSummary(); });
-            document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active', 'text-slate-900')); b.classList.add('active', 'text-slate-900'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById(`tab-${b.dataset.tab}`).classList.remove('hidden'); if(b.dataset.tab === 'summary') renderSummary(); });
+            document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active', 'text-slate-900')); b.classList.add('active', 'text-slate-900'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById(`tab-${b.dataset.tab}`).classList.remove('hidden'); if(b.dataset.tab === 'summary') renderSummary(); if(b.dataset.tab === 'confirmed') renderConfirmed(); });
         }
 
         function renderInputGrid() {
@@ -410,6 +434,62 @@
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         };
 
+        window.saveConfirmedSchedule = async () => {
+            const chks = document.querySelectorAll('.slot-confirm-chk:checked');
+            const finalizedSlots = Array.from(chks).map(c => ({ date: c.dataset.date, slotId: c.dataset.slot }));
+            if(!confirm(`チェックされた ${finalizedSlots.length} 個の枠を「確定日程」として保存しますか？\n（※確定タブの表示が上書きされます）`)) return;
+            try {
+                await setDoc(doc(db, "projects", projectId), { finalizedSlots, updatedAt: serverTimestamp() }, { merge: true });
+                projectConfig.finalizedSlots = finalizedSlots;
+                alert("確定日程を保存しました！");
+                if(document.querySelector('.tab-btn[data-tab="confirmed"]')) document.querySelector('.tab-btn[data-tab="confirmed"]').click();
+            } catch(e) {
+                console.error(e);
+                alert("保存に失敗しました。");
+            }
+        };
+
+        function renderConfirmed() {
+            const container = document.getElementById('confirmed-list');
+            if(!projectConfig.finalizedSlots || projectConfig.finalizedSlots.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 font-normal">確定した日程はまだありません。<br>「集計結果」の画面から枠をチェックして保存してください。</p>`;
+                return;
+            }
+            const dJ = ['日','月','火','水','木','金','土'];
+            const sorted = [...projectConfig.finalizedSlots].sort((a,b) => {
+                if(a.date !== b.date) return a.date.localeCompare(b.date);
+                return a.slotId.localeCompare(b.slotId);
+            });
+            let html = '';
+            sorted.forEach(f => {
+                const d = parseDateStr(f.date); const isH = HOLIDAYS.has(f.date);
+                const dayStr = isH ? '祝' : dJ[d.getDay()];
+                const dColor = isH ? 'text-red-600' : (d.getDay()===0?'text-red-500':(d.getDay()===6?'text-blue-500':''));
+                const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
+                const sLab = slotObj ? `${slotObj.label} <span class="text-xs md:text-sm font-normal text-slate-400">(${slotObj.time})</span>` : '';
+                html += `<div class="flex items-center gap-3 border-b border-slate-200 pb-3 mb-3 last:border-0 last:mb-0 last:pb-0"><span class="text-rose-500 text-xl hidden md:inline">●</span> <span class="w-32 md:w-48 inline-block">${d.getMonth()+1}月${d.getDate()}日 (<span class="${dColor}">${dayStr}</span>)</span> <span>${sLab}</span></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        window.copyConfirmedText = () => {
+            const dJ = ['日','月','火','水','木','金','土'];
+            if(!projectConfig.finalizedSlots || projectConfig.finalizedSlots.length === 0) return alert('コピーする日程がありません。');
+            const sorted = [...projectConfig.finalizedSlots].sort((a,b) => {
+                if(a.date !== b.date) return a.date.localeCompare(b.date);
+                return a.slotId.localeCompare(b.slotId);
+            });
+            let txt = `【${projectConfig.title} 稽古日程】\n\n`;
+            sorted.forEach(f => {
+                const d = parseDateStr(f.date); const isH = HOLIDAYS.has(f.date);
+                const dayStr = isH ? '祝' : dJ[d.getDay()];
+                const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
+                txt += `${d.getMonth()+1}月${d.getDate()}日(${dayStr}) ${slotObj ? slotObj.label+' '+slotObj.time : ''}\n`;
+            });
+            navigator.clipboard.writeText(txt);
+            alert("テキストをクリップボードにコピーしました！LINEやメールに貼り付けてご利用ください。");
+        };
+
         window.toggleAggregation = (name) => {
             if(window.aggregationTargets.has(name)) window.aggregationTargets.delete(name);
             else window.aggregationTargets.add(name);
@@ -419,7 +499,7 @@
         function renderSummary() {
             const container = document.getElementById('summary-container'); const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
             const actualTargets = Array.from(window.aggregationTargets || []);
-            let html = `<table class="w-full border-collapse"><thead class="bg-slate-50 sticky-header border-b-2 z-30"><tr><th class="p-1 md:p-3 border-y border-r text-center text-[10px] md:text-sm sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-12 md:w-28 min-w-[3rem] md:min-w-[7rem]">日付</th><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm w-10 md:w-20 min-w-[2.5rem] md:min-w-[5rem]">枠</th>`;
+            let html = `<table class="w-full border-collapse"><thead class="bg-slate-50 sticky-header border-b-2 z-30"><tr><th class="p-1 md:p-3 border-y border-r text-center text-[10px] md:text-sm sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-12 md:w-28 min-w-[3rem] md:min-w-[7rem]">日付</th><th class="p-1 md:p-3 border text-center text-[10px] md:text-sm w-12 md:w-24 min-w-[3rem] md:min-w-[6rem]">時間枠</th>`;
             projectConfig.members.forEach(m => {
                 const rawName = m.replace('*', '');
                 const isT = window.aggregationTargets.has(rawName);
@@ -435,9 +515,14 @@
                     const noNg = (statuses.filter(s => s === '✕').length === 0 && statuses.filter(s => s).length === actualTargets.length && actualTargets.length > 0);
                     const rowStatus = isAllOk ? 'summary-all-ok' : (noNg ? 'summary-no-ng' : '');
                     const cellBg = isH ? 'bg-red-50' : (day===0?'bg-rose-50':(day===6?'bg-blue-50':'bg-white'));
+                    const isConfirmed = Array.isArray(projectConfig.finalizedSlots) && projectConfig.finalizedSlots.some(f => f.date === dS && f.slotId === slotId);
+                    
                     html += `<tr class="${isH?'day-hol':(day===0?'day-sun':(day===6?'day-sat':''))} ${rowStatus} border-b">`;
                     if(idx === 0) html += `<td class="p-1 md:p-4 border-y border-r font-bold align-middle text-center text-sm md:text-xl leading-tight sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]" rowspan="${actS.length}">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
-                    html += `<td class="p-1 md:p-2 border text-center align-middle font-bold text-xs md:text-base leading-tight">${slot.label}<br><span class="text-[8px] md:text-[9px] font-normal opacity-50">${slot.time}</span></td>`;
+                    html += `<td class="p-1 md:p-2 border text-center align-middle font-bold text-xs md:text-base leading-tight bg-slate-50 hover:bg-slate-200 transition cursor-pointer relative" onclick="const cb = this.querySelector('.slot-confirm-chk'); if(event.target!==cb) cb.checked = !cb.checked;">
+                        <input type="checkbox" class="slot-confirm-chk w-4 h-4 md:w-5 md:h-5 mb-1 cursor-pointer accent-rose-500" data-date="${dS}" data-slot="${slotId}" ${isConfirmed ? 'checked' : ''}><br>
+                        ${slot.label}<br><span class="text-[8px] md:text-[9px] font-normal opacity-50">${slot.time}</span>
+                    </td>`;
                     projectConfig.members.forEach(m => {
                         const name = m.replace('*',''); const s = allResponses[name]?.availability?.[dS]?.[slotId];
                         html += `<td class="p-0.5 md:p-1 border text-center font-bold text-lg md:text-3xl ${s==='◯'?'mark-ok':(s==='△'?'mark-partial':(s==='✕'?'mark-ng':'text-slate-200'))}">${s || '-'}</td>`;
