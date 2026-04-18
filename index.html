@@ -49,12 +49,12 @@
         <div id="admin-view" class="hidden max-w-5xl mx-auto bg-white p-6 md:p-10 rounded-3xl shadow-2xl border border-slate-200">
             <h2 id="admin-title" class="text-2xl font-bold mb-6 border-b-4 border-indigo-500 pb-2">プロジェクトの作成</h2>
             
-            <div class="mb-8 p-6 bg-slate-50 border-2 border-slate-200 rounded-3xl text-sm leading-relaxed">
-                <h3 class="font-bold text-slate-700 mb-2">📜 安心してお使いいただくために</h3>
-                <ul class="list-disc ml-5 space-y-1 text-slate-600">
-                    <li><strong>個人情報:</strong> 参加者名は名字のみにする等、過度な個人情報の入力を避けるよう周知してください。</li>
-                    <li><strong>鍵の設定:</strong> 関係者以外に知られたくない場合は、必ず「プロジェクトの鍵」を設定してください。</li>
-                    <li><strong>削除の責務:</strong> 公演終了後は、作成者様にてプロジェクトを削除してください。</li>
+            <div class="mb-8 p-6 bg-amber-50 border-2 border-amber-200 rounded-3xl text-sm leading-relaxed text-amber-900">
+                <h3 class="font-bold mb-3 text-base flex items-center gap-2"><span>💡</span>はじめての方へ（安心・安全に使うためのお願い）</h3>
+                <ul class="list-disc ml-5 space-y-2">
+                    <li><strong>お名前の入力について:</strong> 参加する方のお名前は「名字のみ」や「ニックネーム」にするなど、個人情報にご配慮くださいませ🙇‍♀️</li>
+                    <li><strong>合言葉（鍵）のおすすめ:</strong> 劇団のメンバー以外に予定を見られたくない場合は、必ず「プロジェクトの鍵（パスワード）」を設定してくださいね🔒</li>
+                    <li><strong>終わったらお片付けを:</strong> 公演やイベントが無事に終わりましたら、このページを作った代表者様が最後に「削除」をお願いいたします✨</li>
                 </ul>
             </div>
 
@@ -231,7 +231,7 @@
                 const lab = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].label : dL[i];
                 const tim = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].time : dT[i];
                 tr.innerHTML = `<td class="p-3 border"><div class="flex items-center gap-3"><input type="text" maxlength="10" class="slot-label-in flex-1 p-2 border-2 rounded-xl font-bold text-base" value="${lab}" placeholder="枠名"><input type="text" maxlength="20" class="slot-time-in w-32 p-2 border-2 rounded-xl text-base" value="${tim}" placeholder="時間"></div></td>` + 
-                [1,2,3,4,5,6,0, 'H'].map(d => `<td class="p-1 border text-center"><input type="checkbox" class="slot-chk w-6 h-6" data-row="${i}" data-day="${d}" ${(isEdit && projectConfig.activeMap[d] ? projectConfig.activeMap[d].includes(`slot${i}`) : (d==='H'||d===0||d===6||i===3))?'checked':''}></td>`).join('');
+                [1,2,3,4,5,6,0, 'H'].map(d => `<td class="p-1 border text-center"><input type="checkbox" class="slot-chk w-6 h-6" data-row="${i}" data-day="${d}" ${(isEdit && projectConfig.activeMap[d] ? projectConfig.activeMap[d].includes(`slot${i}`) : (((d==='H'||d===0||d===6) && i !== 4) || i === 3))?'checked':''}></td>`).join('');
                 grid.appendChild(tr);
             }
         }
