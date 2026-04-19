@@ -283,7 +283,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, getDocFromServer, setDoc, deleteDoc, collection, query, onSnapshot, serverTimestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, getDocFromServer, setDoc, deleteDoc, addDoc, collection, query, onSnapshot, serverTimestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         // --- Firebase Config ---
         const firebaseConfig = {
@@ -346,6 +346,11 @@
 
         const formatDateStr = (date) => date.toLocaleDateString('sv-SE');
         const parseDateStr = (dateStr) => new Date(dateStr + 'T00:00:00');
+
+        function writeUsageLog(data) {
+            // 利用ログをFirestoreにusage_logコレクションに記録（失敗してもサイレントに無視）
+            addDoc(collection(db, "usage_log"), { ...data, timestamp: serverTimestamp() }).catch(() => {});
+        }
 
         let isEditingProject = false;
         function showAdminMode(isEdit = false) {
@@ -447,6 +452,7 @@
             if(savedPassword) localStorage.setItem(`pass_${id}`, savedPassword);
             else localStorage.removeItem(`pass_${id}`);
             if(!isEditingProject) {
+                writeUsageLog({ event: "project_created", projectId: id, title, memberCount: members.length });
                 // 新規作成時は共有URLモーダルを表示してから遷移
                 const shareUrl = `${location.origin}${location.pathname}?id=${id}`;
                 document.getElementById('share-url-input').value = shareUrl;
@@ -465,6 +471,7 @@
             snp.forEach(d => batch.delete(d.ref));
             batch.delete(doc(db, "projects", projectId));
             await batch.commit();
+            writeUsageLog({ event: "project_deleted", projectId, title: projectConfig.title });
             await showAlert("削除が完了しました。");
             location.href = location.pathname;
         };
@@ -553,7 +560,13 @@
 
         window.updateSlot = (btn, status, forceGroup = null) => { const parent = forceGroup || btn.parentElement; const { date, slot } = parent.dataset; parent.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active')); if(status && btn) { btn.classList.add('active'); if(!currentAvailability[date]) currentAvailability[date] = {}; currentAvailability[date][slot] = status; } else if(!status) { if(currentAvailability[date]) delete currentAvailability[date][slot]; } };
 
-        document.getElementById('btn-save-resp').onclick = async () => { const u = document.getElementById('user-select').value; if(!u) return alert("名前選択してください"); await setDoc(doc(db, "projects", projectId, "responses", u), { userName: u, availability: currentAvailability, comment: document.getElementById('comment-box').value, updatedAt: serverTimestamp() }); alert(`${u}さんの予定を登録しました`); };
+        document.getElementById('btn-save-resp').onclick = async () => {
+            const u = document.getElementById('user-select').value;
+            if(!u) { await showAlert("お名前を選択してください"); return; }
+            await setDoc(doc(db, "projects", projectId, "responses", u), { userName: u, availability: currentAvailability, comment: document.getElementById('comment-box').value, updatedAt: serverTimestamp() });
+            writeUsageLog({ event: "response_saved", projectId });
+            await showAlert(`${u}さんの予定を登録しました`);
+        };
 
         window.exportCSV = () => {
             const start = parseDateStr(projectConfig.startDate), end = parseDateStr(projectConfig.endDate), dJ = ['日','月','火','水','木','金','土'];
