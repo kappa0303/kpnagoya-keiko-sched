@@ -81,6 +81,26 @@
             </div>
         </div>
 
+        <!-- 備考モーダル -->
+        <div id="comment-modal" class="hidden fixed inset-0 bg-slate-900/75 z-[2000] flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full flex flex-col max-h-[80vh]">
+                <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b">
+                    <p class="text-lg font-bold text-slate-800">📝 備考・メッセージ</p>
+                    <button onclick="document.getElementById('comment-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+                </div>
+                <div id="comment-modal-body" class="overflow-y-auto px-6 py-4 space-y-3 flex-1"></div>
+                <div class="px-6 pb-5 pt-3 border-t">
+                    <button onclick="document.getElementById('comment-modal').classList.add('hidden')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl transition">閉じる</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 備考フローティングボタン（集計一覧タブのみ表示）-->
+        <button id="comment-float-btn" class="hidden fixed bottom-6 right-4 z-[1000] bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold rounded-full shadow-2xl transition-all flex items-center gap-2 px-4 py-3 text-sm"
+            onclick="openCommentModal()">
+            💬 <span id="comment-float-label">備考</span>
+        </button>
+
         <div id="admin-view" class="max-w-4xl mx-auto hidden bg-white p-6 md:p-10 rounded-3xl shadow-2xl border border-slate-200">
             <h1 id="admin-title" class="text-2xl md:text-3xl font-bold text-center text-indigo-900 mb-6 border-b-2 border-indigo-200 pb-3">新しいプロジェクトを作成</h1>
             
@@ -509,7 +529,15 @@
                 renderInputGrid(); renderBulkButtons();
             };
             onSnapshot(query(collection(db, "projects", projectId, "responses")), (s) => { s.docs.forEach(d => allResponses[d.id] = d.data()); if(document.querySelector('.tab-btn.active').dataset.tab === 'summary') renderSummary(); });
-            document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active', 'text-slate-900')); b.classList.add('active', 'text-slate-900'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById(`tab-${b.dataset.tab}`).classList.remove('hidden'); if(b.dataset.tab === 'summary') renderSummary(); if(b.dataset.tab === 'confirmed') renderConfirmed(); });
+            document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active', 'text-slate-900'));
+                b.classList.add('active', 'text-slate-900');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById(`tab-${b.dataset.tab}`).classList.remove('hidden');
+                if(b.dataset.tab === 'summary') { renderSummary(); document.getElementById('comment-float-btn').classList.remove('hidden'); }
+                else { document.getElementById('comment-float-btn').classList.add('hidden'); }
+                if(b.dataset.tab === 'confirmed') renderConfirmed();
+            });
         }
 
         function renderInputGrid() {
@@ -678,6 +706,34 @@
             await showAlert("テキストをクリップボードにコピーしました！メッセンジャーやメールに貼り付けてご利用ください。");
         };
 
+        window.openCommentModal = () => {
+            const members = projectConfig.members.map(m => m.replace('*',''));
+            const entries = members
+                .map(name => ({ name, comment: (allResponses[name]?.comment || '').trim() }))
+                .filter(e => e.comment);
+            const body = document.getElementById('comment-modal-body');
+            if(entries.length === 0) {
+                body.innerHTML = '<p class="text-slate-400 text-center py-4">備考・メッセージはありません</p>';
+            } else {
+                body.innerHTML = entries.map(e =>
+                    `<div class="bg-slate-50 rounded-2xl px-4 py-3 border">
+                        <p class="text-xs font-bold text-indigo-700 mb-1">${e.name}</p>
+                        <p class="text-sm text-slate-700 whitespace-pre-wrap">${e.comment}</p>
+                    </div>`
+                ).join('');
+            }
+            document.getElementById('comment-modal').classList.remove('hidden');
+        };
+
+        function updateCommentFloatBtn() {
+            const members = projectConfig.members.map(m => m.replace('*',''));
+            const count = members.filter(name => (allResponses[name]?.comment || '').trim()).length;
+            const btn = document.getElementById('comment-float-btn');
+            const lbl = document.getElementById('comment-float-label');
+            lbl.textContent = count > 0 ? `備考 ${count}件` : '備考';
+            btn.classList.toggle('opacity-50', count === 0);
+        }
+
         window.toggleAggregation = (name) => {
             if(window.aggregationTargets.has(name)) window.aggregationTargets.delete(name);
             else window.aggregationTargets.add(name);
@@ -721,6 +777,7 @@
                 });
             }
             container.innerHTML = html + `</tbody></table>`;
+            updateCommentFloatBtn();
         }
     </script>
 </body>
