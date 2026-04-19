@@ -64,21 +64,42 @@
 
         <!-- 利用ログ -->
         <div id="log-section" class="hidden mt-6">
-            <h2 class="text-base md:text-lg font-bold text-slate-700 mb-3 border-b-2 border-slate-200 pb-2">📊 利用ログ（直近50件）</h2>
-            <div class="grid grid-cols-3 gap-2 md:gap-4 mb-4">
+            <h2 class="text-base md:text-lg font-bold text-slate-700 mb-3 border-b-2 border-slate-200 pb-2">📊 利用ログ（直近200件）</h2>
+
+            <!-- 累計カード -->
+            <div class="grid grid-cols-3 gap-2 md:gap-4 mb-5">
                 <div class="bg-white p-3 md:p-5 rounded-2xl shadow-sm border text-center">
                     <p class="text-[10px] md:text-sm font-bold text-slate-500 mb-1">累計作成数</p>
-                    <p id="log-created" class="text-2xl md:text-3xl font-bold text-emerald-600">0</p>
+                    <p id="log-created" class="text-3xl md:text-4xl font-bold text-emerald-600">0</p>
                 </div>
                 <div class="bg-white p-3 md:p-5 rounded-2xl shadow-sm border text-center">
                     <p class="text-[10px] md:text-sm font-bold text-slate-500 mb-1">累計削除数</p>
-                    <p id="log-deleted" class="text-2xl md:text-3xl font-bold text-rose-500">0</p>
+                    <p id="log-deleted" class="text-3xl md:text-4xl font-bold text-rose-500">0</p>
                 </div>
                 <div class="bg-white p-3 md:p-5 rounded-2xl shadow-sm border text-center">
-                    <p class="text-[10px] md:text-sm font-bold text-slate-500 mb-1">累計回答活動</p>
-                    <p id="log-responses" class="text-2xl md:text-3xl font-bold text-blue-600">0</p>
+                    <p class="text-[10px] md:text-sm font-bold text-slate-500 mb-1">延べ参加者数</p>
+                    <p id="log-members" class="text-3xl md:text-4xl font-bold text-indigo-600">0</p>
                 </div>
             </div>
+
+            <!-- 月別集計 -->
+            <h3 class="text-sm font-bold text-slate-600 mb-2">▶ 月別集計</h3>
+            <div class="bg-white rounded-2xl shadow-sm border overflow-x-auto mb-5">
+                <table class="w-full text-xs md:text-sm">
+                    <thead class="bg-slate-100 text-slate-600 font-bold border-b-2">
+                        <tr>
+                            <th class="px-3 py-2 text-left">年月</th>
+                            <th class="px-3 py-2 text-center">作成</th>
+                            <th class="px-3 py-2 text-center">削除</th>
+                            <th class="px-3 py-2 text-center">延べ参加者</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthly-list" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+
+            <!-- 個別ログ -->
+            <h3 class="text-sm font-bold text-slate-600 mb-2">▶ イベント明細</h3>
             <div class="bg-white rounded-2xl shadow-sm border overflow-x-auto">
                 <table class="w-full text-xs md:text-sm">
                     <thead class="bg-slate-100 text-slate-600 font-bold border-b-2">
@@ -87,7 +108,6 @@
                             <th class="px-3 py-2 text-center">イベント</th>
                             <th class="px-3 py-2 text-left">タイトル</th>
                             <th class="px-3 py-2 text-center">参加者数</th>
-                            <th class="px-3 py-2 text-left">ID</th>
                         </tr>
                     </thead>
                     <tbody id="log-list" class="divide-y divide-slate-100"></tbody>
@@ -255,33 +275,68 @@
         };
         async function loadUsageLog() {
             try {
-                const snap = await getDocs(query(collection(db, "usage_log"), orderBy("timestamp", "desc"), limit(50)));
+                const snap = await getDocs(query(collection(db, "usage_log"), orderBy("timestamp", "desc"), limit(200)));
                 const logs = [];
                 snap.forEach(d => logs.push(d.data()));
-                let created = 0, deleted = 0, responses = 0;
+
+                // 累計集計
+                let totalCreated = 0, totalDeleted = 0, totalMembers = 0;
+                // 月別集計マップ: { 'YYYY/MM': { created, deleted, members } }
+                const monthly = {};
+
                 logs.forEach(l => {
-                    if(l.event === 'project_created') created++;
-                    if(l.event === 'project_deleted') deleted++;
-                    if(l.event === 'response_saved') responses++;
-                });
-                document.getElementById('log-created').textContent = created;
-                document.getElementById('log-deleted').textContent = deleted;
-                document.getElementById('log-responses').textContent = responses;
-                const evLabel = { project_created: '作成', project_deleted: '削除', response_saved: '回答' };
-                const evColor = { project_created: 'bg-emerald-100 text-emerald-800', project_deleted: 'bg-rose-100 text-rose-800', response_saved: 'bg-blue-100 text-blue-800' };
-                const tbody = document.getElementById('log-list');
-                tbody.innerHTML = logs.map(l => {
                     const ts = l.timestamp ? new Date(l.timestamp.seconds * 1000) : null;
-                    const tsStr = ts ? `${ts.getFullYear()}/${ts.getMonth()+1}/${ts.getDate()} ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}` : '-';
-                    const badge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${evColor[l.event] || 'bg-slate-100 text-slate-600'}">${evLabel[l.event] || l.event}</span>`;
+                    const ym = ts ? `${ts.getFullYear()}/${String(ts.getMonth()+1).padStart(2,'0')}` : '不明';
+                    if(!monthly[ym]) monthly[ym] = { created: 0, deleted: 0, members: 0 };
+
+                    if(l.event === 'project_created') {
+                        totalCreated++;
+                        totalMembers += (l.memberCount || 0);
+                        monthly[ym].created++;
+                        monthly[ym].members += (l.memberCount || 0);
+                    }
+                    if(l.event === 'project_deleted') {
+                        totalDeleted++;
+                        monthly[ym].deleted++;
+                    }
+                });
+
+                // 累計カード更新
+                document.getElementById('log-created').textContent = totalCreated;
+                document.getElementById('log-deleted').textContent = totalDeleted;
+                document.getElementById('log-members').textContent = totalMembers;
+
+                // 月別テーブル（年月順、新しい順）
+                const monthlyTbody = document.getElementById('monthly-list');
+                const sortedMonths = Object.keys(monthly).sort().reverse();
+                monthlyTbody.innerHTML = sortedMonths.map(ym => {
+                    const m = monthly[ym];
                     return `<tr class="hover:bg-slate-50">
-                        <td class="px-3 py-2 text-slate-500 whitespace-nowrap">${tsStr}</td>
-                        <td class="px-3 py-2 text-center">${badge}</td>
-                        <td class="px-3 py-2 font-bold truncate max-w-[120px] md:max-w-xs">${l.title || '-'}</td>
-                        <td class="px-3 py-2 text-center">${l.memberCount != null ? l.memberCount + '名' : '-'}</td>
-                        <td class="px-3 py-2 text-[10px] text-slate-400 font-mono">${l.projectId || '-'}</td>
+                        <td class="px-3 py-2 font-bold">${ym}</td>
+                        <td class="px-3 py-2 text-center text-emerald-700 font-bold">${m.created > 0 ? '+'+m.created : '-'}</td>
+                        <td class="px-3 py-2 text-center text-rose-600 font-bold">${m.deleted > 0 ? '-'+m.deleted : '-'}</td>
+                        <td class="px-3 py-2 text-center text-indigo-700 font-bold">${m.members > 0 ? m.members+'名' : '-'}</td>
                     </tr>`;
                 }).join('');
+
+                // 個別イベント明細
+                const evLabel = { project_created: '作成', project_deleted: '削除' };
+                const evColor = { project_created: 'bg-emerald-100 text-emerald-800', project_deleted: 'bg-rose-100 text-rose-800' };
+                const tbody = document.getElementById('log-list');
+                tbody.innerHTML = logs
+                    .filter(l => l.event === 'project_created' || l.event === 'project_deleted')
+                    .map(l => {
+                        const ts = l.timestamp ? new Date(l.timestamp.seconds * 1000) : null;
+                        const tsStr = ts ? `${ts.getFullYear()}/${ts.getMonth()+1}/${ts.getDate()} ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}` : '-';
+                        const badge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${evColor[l.event] || 'bg-slate-100 text-slate-600'}">${evLabel[l.event] || l.event}</span>`;
+                        return `<tr class="hover:bg-slate-50">
+                            <td class="px-3 py-2 text-slate-500 whitespace-nowrap">${tsStr}</td>
+                            <td class="px-3 py-2 text-center">${badge}</td>
+                            <td class="px-3 py-2 font-bold truncate max-w-[150px] md:max-w-xs">${l.title || '-'}</td>
+                            <td class="px-3 py-2 text-center">${l.memberCount != null ? l.memberCount + '名' : '-'}</td>
+                        </tr>`;
+                    }).join('');
+
                 document.getElementById('log-section').classList.remove('hidden');
             } catch(e) {
                 console.error('usage_log読み込み失敗:', e);

@@ -564,7 +564,6 @@
             const u = document.getElementById('user-select').value;
             if(!u) { await showAlert("お名前を選択してください"); return; }
             await setDoc(doc(db, "projects", projectId, "responses", u), { userName: u, availability: currentAvailability, comment: document.getElementById('comment-box').value, updatedAt: serverTimestamp() });
-            writeUsageLog({ event: "response_saved", projectId });
             await showAlert(`${u}さんの予定を登録しました`);
         };
 
