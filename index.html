@@ -30,8 +30,26 @@
         .summary-no-ng { background-color: #fef9c3 !important; }
         .sticky-header { position: sticky; top: 0; z-index: 50; background: white; }
         select { min-height: 4.5rem; font-size: 1.25rem !important; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.5em; }
-        /* OFUSEボタンの余白調整 */
-        [data-ofuse-widget-button] { padding-left: 8px !important; padding-right: 8px !important; height: 32px !important; line-height: 32px !important; font-size: 11px !important; }
+        
+        /* 自作OFUSEボタン（ウィジェットの制限を回避） */
+        .custom-ofuse-btn {
+            background-color: #2882a7;
+            color: white !important;
+            border: 1px solid #2882a7;
+            border-radius: 8px;
+            padding: 0 4px !important; /* 極限まで削った余白 */
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            text-decoration: none !important;
+            transition: 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .custom-ofuse-btn:hover { background-color: #247596; border-color: #247596; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -42,16 +60,17 @@
                 <span>KeiCall Board <span class="text-xs md:text-sm font-normal opacity-80 block md:inline md:ml-1">（稽古日程調整アプリ）</span></span>
             </a>
             <div class="header-ofuse flex-shrink-0">
-                <a 
-                  data-ofuse-widget-button 
-                  href="https://ofuse.me/o?uid=20088" 
-                  data-ofuse-id="20088" 
-                  data-ofuse-text="役にたったらOFUSE！" 
-                  data-ofuse-style="rectangle"
-                >
-                  役にたったらOFUSE！
+                <a class="custom-ofuse-btn" onclick="openOfusePopup()">
+                    役にたったらOFUSE！
                 </a>
-                <script src="https://ofuse.me/assets/platform/widget.js" async></script>
+                <script>
+                    function openOfusePopup() {
+                        const url = "https://ofuse.me/o?uid=20088&utm_source=pub&utm_medium=widget&utm_campaign=pub";
+                        const w = 600, h = 800;
+                        const l = (screen.width - w) / 2, t = (screen.height - h) / 2;
+                        window.open(url, "_blank", `width=${w}, height=${h}, left=${l}, top=${t}, menubar=no, toolbar=no, scrollbars=yes`);
+                    }
+                </script>
             </div>
         </div>
     </nav>
