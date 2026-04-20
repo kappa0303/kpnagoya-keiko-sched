@@ -33,12 +33,24 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
-    <nav class="bg-indigo-900 text-white px-4 py-3 shadow-md flex mb-4 md:mb-8 border-b-4 border-indigo-700">
-        <div class="max-w-5xl mx-auto w-full flex items-center">
-            <a href="?" class="font-bold text-lg md:text-xl hover:text-indigo-200 transition tracking-wide flex items-center gap-2 md:gap-3 leading-tight">
+    <nav class="bg-indigo-900 text-white px-4 py-3 shadow-md mb-4 md:mb-8 border-b-4 border-indigo-700">
+        <div class="max-w-5xl mx-auto w-full flex items-center justify-between gap-4">
+            <a href="?" class="font-bold text-lg md:text-xl hover:text-indigo-200 transition tracking-wide flex items-center gap-2 md:gap-3 leading-tight flex-shrink-0">
                 <img src="./logo.jpg" alt="Kangeki Portal Nagoya Logo" class="w-8 h-8 md:w-10 md:h-10 rounded-lg object-contain bg-white shadow-sm border border-indigo-300">
                 <span>KeiCall Board <span class="text-xs md:text-sm font-normal opacity-80 block md:inline md:ml-1">（稽古日程調整アプリ）</span></span>
             </a>
+            <div class="header-ofuse flex-shrink-0">
+                <a 
+                  data-ofuse-widget-button 
+                  href="https://ofuse.me/o?uid=20088" 
+                  data-ofuse-id="20088" 
+                  data-ofuse-text="役にたったらOFUSE！" 
+                  data-ofuse-style="rectangle"
+                >
+                  役にたったらOFUSE！
+                </a>
+                <script src="https://ofuse.me/assets/platform/widget.js" async></script>
+            </div>
         </div>
     </nav>
 
