@@ -197,15 +197,19 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="flex gap-4">
-                        <div class="flex-1">
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <div class="flex-1 w-full">
                             <label class="block font-bold mb-1 text-sm">開始日</label>
                             <input type="date" id="setup-start" class="w-full p-3 border-2 rounded-xl">
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1 w-full">
                             <label class="block font-bold mb-1 text-sm">終了日</label>
                             <input type="date" id="setup-end" class="w-full p-3 border-2 rounded-xl">
                         </div>
+                    </div>
+                    <div class="flex items-center gap-2 pt-4 md:pt-6">
+                        <input type="checkbox" id="setup-show-holiday" class="w-5 h-5 cursor-pointer accent-indigo-600" checked>
+                        <label for="setup-show-holiday" class="text-sm font-bold text-slate-700 cursor-pointer">祝日表示（月祝、水祝など）を有効にする</label>
                     </div>
                 </div>
 
@@ -428,6 +432,7 @@
                 document.getElementById('setup-start').value = projectConfig.startDate;
                 document.getElementById('setup-end').value = projectConfig.endDate;
                 document.getElementById('setup-members').value = projectConfig.members.join(', ');
+                document.getElementById('setup-show-holiday').checked = projectConfig.showHolidayLabel !== false;
                 // 編集モード: 新規パスワード欄を隠して変更用UIを表示
                 document.getElementById('pw-new-section').classList.add('hidden');
                 document.getElementById('pw-change-section').classList.remove('hidden');
@@ -482,6 +487,7 @@
             document.querySelectorAll('.slot-chk').forEach(ck => { if(ck.checked) { const d = ck.dataset.day; if(!activeMap[d]) activeMap[d] = []; activeMap[d].push(`slot${ck.dataset.row}`); } });
             
             const finalizedSlots = projectConfig?.finalizedSlots || [];
+            const showHolidayLabel = document.getElementById('setup-show-holiday').checked;
             let savedPassword = projectConfig?.password || '';
 
             if(isEditingProject) {
@@ -507,7 +513,7 @@
                 savedPassword = document.getElementById('setup-password').value.trim();
             }
 
-            await setDoc(doc(db, "projects", id), { title, password: savedPassword, startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, updatedAt: serverTimestamp() });
+            await setDoc(doc(db, "projects", id), { title, password: savedPassword, startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, showHolidayLabel, updatedAt: serverTimestamp() });
             if(savedPassword) localStorage.setItem(`pass_${id}`, savedPassword);
             else localStorage.removeItem(`pass_${id}`);
             if(!isEditingProject) {
@@ -610,7 +616,8 @@
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), act = projectConfig.activeMap[isH?'H':day] || [];
                 const rC = isH ? 'day-hol' : (day===0?'day-sun':(day===6?'day-sat':''));
                 const cellBg = isH ? 'bg-red-50' : (day===0?'bg-rose-50':(day===6?'bg-blue-50':'bg-white'));
-                html += `<tr class="${rC} border-b hover:opacity-90"><td class="p-1 md:p-2 border-y border-r-2 border-r-slate-200 font-bold text-slate-700 text-center text-xs md:text-lg sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}${isH?'祝':''}</span></td>`;
+                const hL = (isH && projectConfig.showHolidayLabel !== false) ? '祝' : '';
+                html += `<tr class="${rC} border-b hover:opacity-90"><td class="p-1 md:p-2 border-y border-r-2 border-r-slate-200 font-bold text-slate-700 text-center text-xs md:text-lg sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}${hL}</span></td>`;
                 projectConfig.slots.forEach(s => {
                     const st = currentAvailability[dS]?.[s.id] || "";
                     html += `<td class="p-0.5 md:p-1 border text-center">` + (act.includes(s.id) ? `<div class="flex justify-center gap-0.5 md:gap-3 slot-group" data-date="${dS}" data-slot="${s.id}" data-day="${day}" data-hol="${isH}"><button class="slot-btn bg-ok ${st==='◯'?'active':''}" onclick="updateSlot(this,'◯')">◯</button><button class="slot-btn bg-partial ${st==='△'?'active':''}" onclick="updateSlot(this,'△')">△</button><button class="slot-btn bg-ng ${st==='✕'?'active':''}" onclick="updateSlot(this,'✕')">✕</button></div>` : `<span class="opacity-10">-</span>`) + `</td>`;
@@ -672,7 +679,8 @@
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), actS = projectConfig.activeMap[isH ? 'H' : day] || [];
                 actS.forEach(slotId => {
                     const slot = projectConfig.slots.find(s => s.id === slotId);
-                    let row = `${dS},${dJ[day]}${isH?'祝':''},${slot.label},${slot.time}`;
+                    const hL = (isH && projectConfig.showHolidayLabel !== false) ? '祝' : '';
+                    let row = `${dS},${dJ[day]}${hL},${slot.label},${slot.time}`;
                     targetMembers.forEach(m => row += `,${allResponses[m]?.availability?.[dS]?.[slotId] || "-"}`);
                     csv += row + "\n";
                 });
@@ -712,7 +720,8 @@
             let html = '';
             sorted.forEach((f, idx) => {
                 const d = parseDateStr(f.date); const isH = HOLIDAYS.has(f.date);
-                const dayStr = dJ[d.getDay()] + (isH ? '祝' : '');
+                const hL = (isH && projectConfig.showHolidayLabel !== false) ? '祝' : '';
+                const dayStr = dJ[d.getDay()] + hL;
                 const dColor = isH ? 'text-red-600' : (d.getDay()===0?'text-red-500':(d.getDay()===6?'text-blue-500':''));
                 const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
                 const slotLabel = slotObj ? slotObj.label : '';
@@ -766,7 +775,8 @@
             let txt = `【${projectConfig.title} 稽古日程】\n\n`;
             sorted.forEach(f => {
                 const d = parseDateStr(f.date); const isH = HOLIDAYS.has(f.date);
-                const dayStr = dJ[d.getDay()] + (isH ? '祝' : '');
+                const hL = (isH && projectConfig.showHolidayLabel !== false) ? '祝' : '';
+                const dayStr = dJ[d.getDay()] + hL;
                 const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
                 txt += `${d.getMonth()+1}月${d.getDate()}日(${dayStr}) ${slotObj ? slotObj.label+' '+slotObj.time : ''}`;
                 if(f.venue) txt += `  [場所] ${f.venue}`;
@@ -831,9 +841,10 @@
                     const rowStatus = isAllOk ? 'summary-all-ok' : (noNg ? 'summary-no-ng' : '');
                     const cellBg = isH ? 'bg-red-50' : (day===0?'bg-rose-50':(day===6?'bg-blue-50':'bg-white'));
                     const isConfirmed = Array.isArray(projectConfig.finalizedSlots) && projectConfig.finalizedSlots.some(f => f.date === dS && f.slotId === slotId);
+                    const hL = (isH && projectConfig.showHolidayLabel !== false) ? '祝' : '';
                     
                     html += `<tr class="${isH?'day-hol':(day===0?'day-sun':(day===6?'day-sat':''))} ${rowStatus} border-b">`;
-                    if(idx === 0) html += `<td class="p-1 md:p-3 border-y border-r font-bold align-middle text-center text-sm md:text-xl leading-tight sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]" rowspan="${actS.length}">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[10px] md:text-xs font-normal opacity-60">${dJ[day]}${isH?'祝':''}</span></td>`;
+                    if(idx === 0) html += `<td class="p-1 md:p-3 border-y border-r font-bold align-middle text-center text-sm md:text-xl leading-tight sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]" rowspan="${actS.length}">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[10px] md:text-xs font-normal opacity-60">${dJ[day]}${hL}</span></td>`;
                     html += `<td class="p-1 border-y border-l border-slate-200 text-center align-middle cursor-pointer ${cellBg} hover:opacity-80 transition" onclick="const cb = this.querySelector('.slot-confirm-chk'); if(event.target!==cb) cb.checked = !cb.checked;">
                         <input type="checkbox" class="slot-confirm-chk w-4 h-4 md:w-5 md:h-5 cursor-pointer accent-blue-600" data-date="${dS}" data-slot="${slotId}" ${isConfirmed ? 'checked' : ''}>
                     </td>`;
