@@ -610,7 +610,7 @@
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), act = projectConfig.activeMap[isH?'H':day] || [];
                 const rC = isH ? 'day-hol' : (day===0?'day-sun':(day===6?'day-sat':''));
                 const cellBg = isH ? 'bg-red-50' : (day===0?'bg-rose-50':(day===6?'bg-blue-50':'bg-white'));
-                html += `<tr class="${rC} border-b hover:opacity-90"><td class="p-1 md:p-2 border-y border-r-2 border-r-slate-200 font-bold text-slate-700 text-center text-xs md:text-lg sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
+                html += `<tr class="${rC} border-b hover:opacity-90"><td class="p-1 md:p-2 border-y border-r-2 border-r-slate-200 font-bold text-slate-700 text-center text-xs md:text-lg sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[9px] md:text-xs font-normal opacity-60">${dJ[day]}${isH?'祝':''}</span></td>`;
                 projectConfig.slots.forEach(s => {
                     const st = currentAvailability[dS]?.[s.id] || "";
                     html += `<td class="p-0.5 md:p-1 border text-center">` + (act.includes(s.id) ? `<div class="flex justify-center gap-0.5 md:gap-3 slot-group" data-date="${dS}" data-slot="${s.id}" data-day="${day}" data-hol="${isH}"><button class="slot-btn bg-ok ${st==='◯'?'active':''}" onclick="updateSlot(this,'◯')">◯</button><button class="slot-btn bg-partial ${st==='△'?'active':''}" onclick="updateSlot(this,'△')">△</button><button class="slot-btn bg-ng ${st==='✕'?'active':''}" onclick="updateSlot(this,'✕')">✕</button></div>` : `<span class="opacity-10">-</span>`) + `</td>`;
@@ -672,7 +672,7 @@
                 const dS = formatDateStr(d), day = d.getDay(), isH = HOLIDAYS.has(dS), actS = projectConfig.activeMap[isH ? 'H' : day] || [];
                 actS.forEach(slotId => {
                     const slot = projectConfig.slots.find(s => s.id === slotId);
-                    let row = `${dS},${dJ[day]},${slot.label},${slot.time}`;
+                    let row = `${dS},${dJ[day]}${isH?'祝':''},${slot.label},${slot.time}`;
                     targetMembers.forEach(m => row += `,${allResponses[m]?.availability?.[dS]?.[slotId] || "-"}`);
                     csv += row + "\n";
                 });
@@ -712,7 +712,7 @@
             let html = '';
             sorted.forEach((f, idx) => {
                 const d = parseDateStr(f.date); const isH = HOLIDAYS.has(f.date);
-                const dayStr = isH ? '祝' : dJ[d.getDay()];
+                const dayStr = dJ[d.getDay()] + (isH ? '祝' : '');
                 const dColor = isH ? 'text-red-600' : (d.getDay()===0?'text-red-500':(d.getDay()===6?'text-blue-500':''));
                 const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
                 const slotLabel = slotObj ? slotObj.label : '';
@@ -720,7 +720,7 @@
                 const noBadge = `<span class="bg-indigo-100 text-indigo-700 font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px] md:text-xs flex-shrink-0">${idx+1}</span>`;
                 html += `<div class="flex items-center gap-1.5 border-b border-slate-200 py-1.5 md:py-3 last:border-0" data-idx="${idx}">
                     ${noBadge}
-                    <span class="font-bold text-xs md:text-base whitespace-nowrap w-14 md:w-24 flex-shrink-0"><span class="${dColor}">${d.getMonth()+1}/${d.getDate()}(${dayStr})</span></span>
+                    <span class="font-bold text-xs md:text-base whitespace-nowrap w-16 md:w-28 flex-shrink-0"><span class="${dColor}">${d.getMonth()+1}/${d.getDate()}(${dayStr})</span></span>
                     <span class="flex flex-col leading-tight w-14 md:w-28 flex-shrink-0">
                         <span class="font-bold text-xs md:text-base whitespace-nowrap">${slotLabel}</span>
                         <span class="text-[10px] md:text-sm text-slate-400 whitespace-nowrap">${slotTime}</span>
@@ -766,7 +766,7 @@
             let txt = `【${projectConfig.title} 稽古日程】\n\n`;
             sorted.forEach(f => {
                 const d = parseDateStr(f.date); const isH = HOLIDAYS.has(f.date);
-                const dayStr = isH ? '祝' : dJ[d.getDay()];
+                const dayStr = dJ[d.getDay()] + (isH ? '祝' : '');
                 const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
                 txt += `${d.getMonth()+1}月${d.getDate()}日(${dayStr}) ${slotObj ? slotObj.label+' '+slotObj.time : ''}`;
                 if(f.venue) txt += `  [場所] ${f.venue}`;
@@ -833,7 +833,7 @@
                     const isConfirmed = Array.isArray(projectConfig.finalizedSlots) && projectConfig.finalizedSlots.some(f => f.date === dS && f.slotId === slotId);
                     
                     html += `<tr class="${isH?'day-hol':(day===0?'day-sun':(day===6?'day-sat':''))} ${rowStatus} border-b">`;
-                    if(idx === 0) html += `<td class="p-1 md:p-3 border-y border-r font-bold align-middle text-center text-sm md:text-xl leading-tight sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]" rowspan="${actS.length}">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[10px] md:text-xs font-normal opacity-60">${dJ[day]}</span></td>`;
+                    if(idx === 0) html += `<td class="p-1 md:p-3 border-y border-r font-bold align-middle text-center text-sm md:text-xl leading-tight sticky left-0 z-20 ${cellBg} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]" rowspan="${actS.length}">${d.getMonth()+1}/${d.getDate()}<br><span class="text-[10px] md:text-xs font-normal opacity-60">${dJ[day]}${isH?'祝':''}</span></td>`;
                     html += `<td class="p-1 border-y border-l border-slate-200 text-center align-middle cursor-pointer ${cellBg} hover:opacity-80 transition" onclick="const cb = this.querySelector('.slot-confirm-chk'); if(event.target!==cb) cb.checked = !cb.checked;">
                         <input type="checkbox" class="slot-confirm-chk w-4 h-4 md:w-5 md:h-5 cursor-pointer accent-blue-600" data-date="${dS}" data-slot="${slotId}" ${isConfirmed ? 'checked' : ''}>
                     </td>`;
