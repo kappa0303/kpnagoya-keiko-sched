@@ -18,10 +18,10 @@
         .bg-ng { background-color: #ef4444 !important; color: white !important; }
         .bg-clr { background-color: #cbd5e1 !important; color: #475569 !important; }
         .slot-btn { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; opacity: 0.2; transition: 0.2s; cursor: pointer; border: 2px solid transparent; }
-        @media (min-width: 768px) { .slot-btn { width: 40px; height: 40px; font-size: 1.25rem; } }
+        @media (min-width: 768px) { .slot-btn { width: 34px; height: 34px; font-size: 1.1rem; } }
         .slot-btn.active { opacity: 1; transform: scale(1.1); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
         .bulk-btn { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; color: white; transition: 0.2s; cursor: pointer; border: none; }
-        @media (min-width: 768px) { .bulk-btn { width: 38px; height: 38px; border-radius: 10px; font-size: 1.1rem; } }
+        @media (min-width: 768px) { .bulk-btn { width: 32px; height: 32px; border-radius: 9px; font-size: 1rem; } }
         .bulk-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .day-sat { background-color: #eff6ff !important; }
         .day-sun { background-color: #fff1f2 !important; }
@@ -397,6 +397,11 @@
         let projectConfig = null;
         let allResponses = {};
         let currentAvailability = {};
+        let isDirty = false;
+
+        window.addEventListener('beforeunload', (e) => {
+            if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+        });
 
         const formatDateStr = (date) => date.toLocaleDateString('sv-SE');
         const parseDateStr = (dateStr) => new Date(dateStr + 'T00:00:00');
@@ -560,17 +565,26 @@
                 const uS = await getDoc(doc(db, "projects", projectId, "responses", u));
                 currentAvailability = uS.exists() ? uS.data().availability : {};
                 document.getElementById('comment-box').value = uS.exists() ? uS.data().comment : "";
+                isDirty = false;
                 renderInputGrid(); renderBulkButtons();
             };
+            document.getElementById('comment-box').oninput = () => { isDirty = true; };
             onSnapshot(query(collection(db, "projects", projectId, "responses")), (s) => { s.docs.forEach(d => allResponses[d.id] = d.data()); if(document.querySelector('.tab-btn.active').dataset.tab === 'summary') renderSummary(); });
-            document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.onclick = async () => {
+                const target = b.dataset.tab;
+                const current = document.querySelector('.tab-btn.active').dataset.tab;
+                if(target === current) return;
+                if(isDirty) {
+                    if(!await showConfirm("未保存の変更があります。破棄して移動しますか？")) return;
+                    isDirty = false;
+                }
                 document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active', 'text-slate-900'));
                 b.classList.add('active', 'text-slate-900');
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-                document.getElementById(`tab-${b.dataset.tab}`).classList.remove('hidden');
-                if(b.dataset.tab === 'summary') { renderSummary(); document.getElementById('comment-float-btn').classList.remove('hidden'); }
+                document.getElementById(`tab-${target}`).classList.remove('hidden');
+                if(target === 'summary') { renderSummary(); document.getElementById('comment-float-btn').classList.remove('hidden'); }
                 else { document.getElementById('comment-float-btn').classList.add('hidden'); }
-                if(b.dataset.tab === 'confirmed') renderConfirmed();
+                if(target === 'confirmed') renderConfirmed();
             });
         }
 
@@ -620,12 +634,21 @@
             document.querySelectorAll('.slot-group').forEach(group => { const { date, slot, day, hol } = group.dataset; let isT = false; if(type==='all') isT=true; if(type==='day' && (day==target || (target==0 && hol==='true'))) isT=true; if(type==='slot' && slot===target) isT=true; if(isT) { const btn = status ? group.querySelector(`.slot-btn.${status==='◯'?'bg-ok':(status==='△'?'bg-partial':'bg-ng')}`) : null; updateSlot(btn, status, group); } });
         }
 
-        window.updateSlot = (btn, status, forceGroup = null) => { const parent = forceGroup || btn.parentElement; const { date, slot } = parent.dataset; parent.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active')); if(status && btn) { btn.classList.add('active'); if(!currentAvailability[date]) currentAvailability[date] = {}; currentAvailability[date][slot] = status; } else if(!status) { if(currentAvailability[date]) delete currentAvailability[date][slot]; } };
+        window.updateSlot = (btn, status, forceGroup = null) => { 
+            const parent = forceGroup || btn.parentElement; const { date, slot } = parent.dataset; parent.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active')); 
+            if(status && btn) { 
+                btn.classList.add('active'); if(!currentAvailability[date]) currentAvailability[date] = {}; currentAvailability[date][slot] = status; 
+            } else if(!status) { 
+                if(currentAvailability[date]) delete currentAvailability[date][slot]; 
+            }
+            isDirty = true;
+        };
 
         document.getElementById('btn-save-resp').onclick = async () => {
             const u = document.getElementById('user-select').value;
             if(!u) { await showAlert("お名前を選択してください"); return; }
             await setDoc(doc(db, "projects", projectId, "responses", u), { userName: u, availability: currentAvailability, comment: document.getElementById('comment-box').value, updatedAt: serverTimestamp() });
+            isDirty = false;
             await showAlert(`${u}さんの予定を登録しました`);
         };
 
@@ -654,6 +677,7 @@
             try {
                 await setDoc(doc(db, "projects", projectId), { finalizedSlots, updatedAt: serverTimestamp() }, { merge: true });
                 projectConfig.finalizedSlots = finalizedSlots;
+                isDirty = false;
                 await showAlert("稽古日程に反映しました！");
                 if(document.querySelector('.tab-btn[data-tab="confirmed"]')) document.querySelector('.tab-btn[data-tab="confirmed"]').click();
             } catch(e) {
@@ -681,16 +705,16 @@
                 const slotObj = projectConfig.slots.find(s => s.id === f.slotId);
                 const slotLabel = slotObj ? slotObj.label : '';
                 const slotTime  = slotObj ? slotObj.time  : '';
-                const noBadge = `<span class="bg-indigo-100 text-indigo-700 font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px] flex-shrink-0">${idx+1}</span>`;
-                html += `<div class="flex items-center gap-1.5 border-b border-slate-200 py-1.5 last:border-0" data-idx="${idx}">
+                const noBadge = `<span class="bg-indigo-100 text-indigo-700 font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px] md:text-xs flex-shrink-0">${idx+1}</span>`;
+                html += `<div class="flex items-center gap-1.5 border-b border-slate-200 py-1.5 md:py-3 last:border-0" data-idx="${idx}">
                     ${noBadge}
-                    <span class="font-bold text-xs whitespace-nowrap w-14 flex-shrink-0"><span class="${dColor}">${d.getMonth()+1}/${d.getDate()}(${dayStr})</span></span>
-                    <span class="flex flex-col leading-tight w-14 flex-shrink-0">
-                        <span class="font-bold text-xs whitespace-nowrap">${slotLabel}</span>
-                        <span class="text-[10px] text-slate-400 whitespace-nowrap">${slotTime}</span>
+                    <span class="font-bold text-xs md:text-base whitespace-nowrap w-14 md:w-24 flex-shrink-0"><span class="${dColor}">${d.getMonth()+1}/${d.getDate()}(${dayStr})</span></span>
+                    <span class="flex flex-col leading-tight w-14 md:w-28 flex-shrink-0">
+                        <span class="font-bold text-xs md:text-base whitespace-nowrap">${slotLabel}</span>
+                        <span class="text-[10px] md:text-sm text-slate-400 whitespace-nowrap">${slotTime}</span>
                     </span>
-                    <input type="text" class="confirmed-venue flex-1 min-w-0 px-2 py-1 border rounded text-xs" placeholder="稽古場所" data-date="${f.date}" data-slot="${f.slotId}" value="${f.venue || ''}">
-                    <input type="text" class="confirmed-notes flex-1 min-w-0 px-2 py-1 border rounded text-xs" placeholder="備考" data-date="${f.date}" data-slot="${f.slotId}" value="${f.notes || ''}">
+                    <input type="text" class="confirmed-venue flex-1 min-w-0 px-2 py-1 md:py-2 border rounded text-xs md:text-base" placeholder="稽古場所" data-date="${f.date}" data-slot="${f.slotId}" oninput="isDirty=true" value="${f.venue || ''}">
+                    <input type="text" class="confirmed-notes flex-1 min-w-0 px-2 py-1 md:py-2 border rounded text-xs md:text-base" placeholder="備考" data-date="${f.date}" data-slot="${f.slotId}" oninput="isDirty=true" value="${f.notes || ''}">
                 </div>`;
             });
             container.innerHTML = html;
@@ -712,6 +736,7 @@
             try {
                 await setDoc(doc(db, "projects", projectId), { finalizedSlots: updatedSlots, updatedAt: serverTimestamp() }, { merge: true });
                 projectConfig.finalizedSlots = updatedSlots;
+                isDirty = false;
                 await showAlert("場所・備考を登録しました！");
             } catch(e) {
                 console.error(e);
@@ -811,6 +836,7 @@
                 });
             }
             container.innerHTML = html + `</tbody></table>`;
+            container.querySelectorAll('.slot-confirm-chk').forEach(c => c.onchange = () => { isDirty = true; });
             updateCommentFloatBtn();
         }
     </script>
