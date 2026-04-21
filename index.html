@@ -559,8 +559,20 @@
             document.getElementById('btn-copy-url').onclick = async () => { await navigator.clipboard.writeText(window.location.href); const toast = document.getElementById('copy-toast'); toast.classList.remove('opacity-0'); setTimeout(() => toast.classList.add('opacity-0'), 2000); };
             const sel = document.getElementById('user-select');
             sel.innerHTML = '<option value="">▼ お名前を選択してください</option>' + projectConfig.members.map(m => `<option value="${m.replace('*','')}">${m.replace('*','')}</option>`).join('');
+            let lastSelectedUser = "";
             sel.onchange = async () => {
-                const u = sel.value; if(!u) return document.getElementById('input-area').classList.add('hidden');
+                const u = sel.value;
+                if (isDirty && lastSelectedUser !== u) {
+                    if (!await showConfirm("読み込み中のお名前に未保存の変更があります。破棄して別の人に切り替えますか？")) {
+                        sel.value = lastSelectedUser;
+                        return;
+                    }
+                }
+                if(!u) {
+                    lastSelectedUser = "";
+                    return document.getElementById('input-area').classList.add('hidden');
+                }
+                lastSelectedUser = u;
                 document.getElementById('input-area').classList.remove('hidden');
                 const uS = await getDoc(doc(db, "projects", projectId, "responses", u));
                 currentAvailability = uS.exists() ? uS.data().availability : {};
