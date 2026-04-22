@@ -29,7 +29,7 @@
         .summary-all-ok { background-color: #dcfce7 !important; }
         .summary-no-ng { background-color: #fef9c3 !important; }
         .sticky-header { position: sticky; top: 0; z-index: 50; background: white; }
-        select { min-height: 4.5rem; font-size: 1.25rem !important; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.5em; }
+        select { min-height: 3.5rem; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.5em; }
         
         /* 自作OFUSEボタン（ウィジェットの制限を回避） */
         .custom-ofuse-btn {
@@ -269,8 +269,8 @@
             <div id="tab-input" class="tab-content">
                 <div class="bg-white px-1 py-4 md:p-8 rounded-3xl shadow-xl border border-slate-100">
                     <div class="mb-6 md:mb-8">
-                        <label class="block text-base md:text-xl font-bold mb-2 md:mb-3 text-slate-700">1. お名前を選択してください</label>
-                        <select id="user-select" class="w-full p-3 md:p-4 border-2 rounded-xl md:rounded-2xl font-bold text-slate-800 bg-slate-50 text-base md:text-lg focus:ring-4 focus:ring-indigo-100"></select>
+                        <label class="block text-base md:text-lg font-bold mb-2 md:mb-3 text-slate-700">1. お名前を選択してください</label>
+                        <select id="user-select" class="w-full p-2.5 md:p-3 border-2 rounded-xl md:rounded-2xl font-bold text-slate-800 bg-slate-50 focus:ring-4 focus:ring-indigo-100"></select>
                     </div>
 
                     <div id="input-area" class="hidden space-y-6 md:space-y-10">
@@ -286,7 +286,7 @@
                             <p class="text-xs text-red-500 mb-3 font-bold">※体調やプライバシーに関わる詳細な理由は、直接関係者へ個別に連絡してください。</p>
                             <textarea id="comment-box" maxlength="500" class="w-full p-5 border-2 rounded-2xl text-lg focus:ring-4 focus:ring-indigo-100 outline-none" rows="3" placeholder="△の理由や連絡事項を入力"></textarea>
                         </div>
-                        <button id="btn-save-resp" class="w-full bg-blue-600 text-white font-bold py-6 rounded-3xl shadow-xl text-2xl active:scale-95 transition-all">回答を送信（保存）する</button>
+                        <button id="btn-save-resp" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl text-xl active:scale-95 transition-all">回答を送信（保存）する</button>
                     </div>
                 </div>
             </div>
@@ -311,6 +311,11 @@
                     </div>
                 </div>
                 <div id="summary-container" class="bg-white px-1 py-2 md:p-8 rounded-3xl shadow-xl overflow-x-auto border border-slate-100"></div>
+                <div class="mt-6 flex justify-center">
+                    <button onclick="window.saveConfirmedSchedule()" class="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition animate-pulse">
+                        <span>✅ チェックした枠を稽古日程に反映</span>
+                    </button>
+                </div>
             </div>
 
             <div id="tab-confirmed" class="tab-content hidden">
