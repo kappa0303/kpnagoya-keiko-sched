@@ -478,6 +478,8 @@
             const dL = ["午前", "午後", "夕方", "夜間", ""], dT = ["09:30-12:30", "12:30-15:30", "15:30-18:30", "18:30-21:30", ""];
 
             if(isEdit) {
+                document.getElementById('pw-new-section').classList.add('hidden');
+                document.getElementById('pw-change-section').classList.remove('hidden');
                 document.getElementById('admin-title').innerText = "設定の編集";
                 document.getElementById('setup-id').value = projectId; document.getElementById('setup-id').disabled = true;
                 document.getElementById('btn-gen-id').classList.add('hidden'); document.getElementById('btn-cancel-edit').classList.remove('hidden');
@@ -492,6 +494,8 @@
                     grid.appendChild(renderSlotRow(i, s.label, s.time, projectConfig.activeMap));
                 });
             } else {
+                document.getElementById('pw-new-section').classList.remove('hidden');
+                document.getElementById('pw-change-section').classList.add('hidden');
                 for(let i=0; i<5; i++) {
                     grid.appendChild(renderSlotRow(i, dL[i], dT[i]));
                 }
