@@ -534,6 +534,19 @@
                     }
                 });
             });
+
+            if (isEditingProject && projectConfig) {
+                let warnings = [];
+                const removedMembers = projectConfig.members.filter(m => !members.includes(m));
+                if (removedMembers.length > 0) warnings.push(`・参加者 (${removedMembers.join(", ")}) を削除すると、その人の回答データも全て消去されます。`);
+                if (projectConfig.slots.length > slots.length) warnings.push(`・時間枠を削減（${projectConfig.slots.length}枠 → ${slots.length}枠）すると、削除された枠の回答データが失われます。`);
+                const nS = document.getElementById('setup-start').value, nE = document.getElementById('setup-end').value;
+                if (nS > projectConfig.startDate || nE < projectConfig.endDate) warnings.push(`・プロジェクト期間を短縮すると、期間外になった日付の回答データが全て消去されます。`);
+                if (warnings.length > 0) {
+                    const msg = "【ご注意】変更内容にデータの削除を伴う項目があります：\n\n" + warnings.join("\n") + "\n\nこのまま保存してもよろしいですか？";
+                    if (!await showConfirm(msg)) return;
+                }
+            }
             
             const finalizedSlots = projectConfig?.finalizedSlots || [];
             const showHolidayLabel = document.getElementById('setup-show-holiday').checked;
