@@ -180,7 +180,7 @@
                 }
             } catch (e) {
                 console.error(e);
-                alert("セキュリティチェックに失敗しました。");
+                alert("セキュリティチェックに失敗しました。\nエラー内容: " + e.message);
             }
         }
         checkAccess();
