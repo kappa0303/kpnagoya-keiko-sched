@@ -34,7 +34,8 @@ service cloud.firestore {
     // 5. システム設定 (system_config/admin)
     match /system_config/admin {
       allow read, create: if true;
-      allow update, delete: if false;
+      allow update: if true;
+      allow delete: if false;
     }
   }
 }
