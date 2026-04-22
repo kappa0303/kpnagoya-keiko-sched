@@ -447,7 +447,17 @@
                 const tr = document.createElement('tr');
                 const lab = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].label : dL[i];
                 const tim = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].time : dT[i];
-                tr.innerHTML = `<td class="p-1.5 md:p-3 border align-middle"><div class="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3"><input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:p-2 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名"><input type="text" maxlength="20" class="slot-time-in w-full lg:w-32 p-1 md:p-2 border-2 rounded-md text-[10px] md:text-base text-center lg:text-left" value="${tim}" placeholder="時間"></div></td>` + 
+                const [tStart, tEnd] = tim.split('-');
+                tr.innerHTML = `<td class="p-1.5 md:p-3 border align-middle">
+                    <div class="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3">
+                        <input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:p-2 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名">
+                        <div class="flex items-center gap-1">
+                            <input type="time" class="slot-time-start p-1 border-2 rounded-md text-[10px] md:text-xs" value="${tStart || ''}">
+                            <span class="text-xs">-</span>
+                            <input type="time" class="slot-time-end p-1 border-2 rounded-md text-[10px] md:text-xs" value="${tEnd || ''}">
+                        </div>
+                    </div>
+                </td>` + 
                 [1,2,3,4,5,6,0, 'H'].map(d => `<td class="p-0.5 md:p-1 border text-center align-middle"><input type="checkbox" class="slot-chk w-4 h-4 md:w-6 md:h-6" data-row="${i}" data-day="${d}" ${
                     isEdit
                         ? (projectConfig.activeMap[d] && projectConfig.activeMap[d].includes(`slot${i}`) ? 'checked' : '')
@@ -465,7 +475,8 @@
         
         const setTemplate = (times, labels) => {
             document.querySelectorAll('.slot-label-in').forEach((el, i) => el.value = labels[i]);
-            document.querySelectorAll('.slot-time-in').forEach((el, i) => el.value = times[i]);
+            document.querySelectorAll('.slot-time-start').forEach((el, i) => el.value = times[i].split('-')[0] || '');
+            document.querySelectorAll('.slot-time-end').forEach((el, i) => el.value = times[i].split('-')[1] || '');
         };
         document.getElementById('tpl-yousquare').onclick = () => setTemplate(["09:30-12:30", "12:30-15:30", "15:30-18:30", "18:30-21:30", ""], ["午前", "午後", "夕方", "夜間", ""]);
         document.getElementById('tpl-actenon').onclick = () => setTemplate(["09:30-12:00", "12:30-15:00", "15:30-18:00", "18:30-22:00", ""], ["午前", "午後", "夕方", "夜間", ""]);
@@ -482,7 +493,12 @@
             if(!title) { await showAlert("プロジェクト名を入力してください"); return; }
 
             const slots = [];
-            document.querySelectorAll('.slot-label-in').forEach((el, i) => { const label = el.value.trim(); const time = document.querySelectorAll('.slot-time-in')[i].value.trim(); if(label) slots.push({ id: `slot${i}`, label, time }); });
+            document.querySelectorAll('.slot-label-in').forEach((el, i) => { 
+                const label = el.value.trim(); 
+                const start = document.querySelectorAll('.slot-time-start')[i].value;
+                const end = document.querySelectorAll('.slot-time-end')[i].value;
+                if(label) slots.push({ id: `slot${i}`, label, time: `${start}-${end}` }); 
+            });
             const activeMap = {};
             document.querySelectorAll('.slot-chk').forEach(ck => { if(ck.checked) { const d = ck.dataset.day; if(!activeMap[d]) activeMap[d] = []; activeMap[d].push(`slot${ck.dataset.row}`); } });
             
