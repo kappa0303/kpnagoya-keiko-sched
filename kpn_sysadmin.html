@@ -116,10 +116,23 @@
         </div>
     </div>
 
+    <!-- 初回セットアップ画面 -->
+    <div id="setup-screen" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full border border-indigo-100">
+            <h2 class="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">🛡️ 初期セットアップ</h2>
+            <p class="text-slate-500 text-sm mb-6 leading-relaxed">管理者パスワードが設定されていません。システムを保護するために新しいパスワードを設定してください。</p>
+            <div class="space-y-4">
+                <input type="password" id="new-admin-pass" class="w-full p-4 border-2 rounded-2xl text-lg outline-none focus:border-indigo-500 transition-all" placeholder="新パスワード">
+                <input type="password" id="new-admin-pass-confirm" class="w-full p-4 border-2 rounded-2xl text-lg outline-none focus:border-indigo-500 transition-all" placeholder="再入力（確認用）">
+                <button id="btn-save-admin-pass" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98]">パスワードを確実に保存する</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, doc, collection, query, getDocs, writeBatch, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, doc, collection, query, getDocs, setDoc, writeBatch, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAbdT-7Po65EbzX82-mO9yXcW59Fjh7wjI",
@@ -132,13 +145,65 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        const hashPassword = async (p) => {
+            if (!p || p.startsWith('$v1$')) return p || "";
+            const b = new TextEncoder().encode(p);
+            const h = await crypto.subtle.digest('SHA-256', b);
+            return '$v1$' + Array.from(new Uint8Array(h)).map(x => x.toString(16).padStart(2, '0')).join('');
+        };
+        const verifyPassword = async (input, stored) => {
+            if (!stored) return true;
+            if (!input) return false;
+            if (stored.startsWith('$v1$')) {
+                const hashedInput = await hashPassword(input);
+                return hashedInput === stored;
+            }
+            return input === stored;
+        };
+
         // Access Gate
-        const psw = prompt("管理者パスワードを入力してください:");
-        if (psw !== "Kangeki758kcb") {
-            alert("アクセスが拒否されました。");
-            window.location.href = "./";
-        } else {
-            initDashboard();
+        async function checkAccess() {
+            try {
+                const snap = await getDocs(query(collection(db, "system_config")));
+                let adminDoc = null;
+                snap.forEach(d => { if(d.id === 'admin') adminDoc = d.data(); });
+
+                if (!adminDoc) {
+                    showSetup();
+                } else {
+                    const psw = prompt("管理者パスワードを入力してください:");
+                    if (await verifyPassword(psw, adminDoc.password)) {
+                        initDashboard();
+                    } else {
+                        alert("アクセスが拒否されました。");
+                        window.location.href = "./";
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                alert("セキュリティチェックに失敗しました。");
+            }
+        }
+        checkAccess();
+
+        function showSetup() {
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('btn-save-admin-pass').onclick = async () => {
+                const p1 = document.getElementById('new-admin-pass').value.trim();
+                const p2 = document.getElementById('new-admin-pass-confirm').value.trim();
+                if (!p1) return alert("パスワードを入力してください");
+                if (p1 !== p2) return alert("パスワードが一致しません");
+                
+                try {
+                    const hashed = await hashPassword(p1);
+                    await setDoc(doc(db, "system_config", "admin"), { password: hashed });
+                    alert("管理者パスワードを設定しました。再読み込みします。");
+                    location.reload();
+                } catch(e) {
+                    console.error(e);
+                    alert("保存に失敗しました。詳細: " + e.message);
+                }
+            };
         }
 
         async function initDashboard() {
@@ -226,8 +291,12 @@
             }
             if(!confirm(`選択された ${checked.length} 件のプロジェクトを完全に削除します。本当によろしいですか？`)) return;
             
-            const p = prompt("セキュリティ確認：管理者パスワード（ログイン時と同じ）を入力してください");
-            if(p !== "Kangeki758kcb") {
+            const p = prompt("セキュリティ確認：管理者パスワードを入力してください");
+            const snap = await getDocs(query(collection(db, "system_config")));
+            let adminPass = "";
+            snap.forEach(d => { if(d.id === 'admin') adminPass = d.data().password; });
+
+            if(!await verifyPassword(p, adminPass)) {
                 alert("パスワードが違います。一括削除を中止します。");
                 return;
             }

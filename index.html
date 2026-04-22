@@ -580,11 +580,13 @@
                 if(np || cp || cur) {
                     if(projectConfig.password && !await verifyPassword(cur, projectConfig.password)) {
                         document.getElementById('pw-current-mismatch').classList.remove('hidden');
+                        await showAlert("現在のパスワードが正しくありません。");
                         return;
                     }
                     document.getElementById('pw-current-mismatch').classList.add('hidden');
                     if(np && np !== cp) {
                         document.getElementById('pw-mismatch-msg').classList.remove('hidden');
+                        await showAlert("新しいパスワードが一致しません。");
                         return;
                     }
                     document.getElementById('pw-mismatch-msg').classList.add('hidden');

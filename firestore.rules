@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. プロジェクト本体の設定 (projects/{projectId})
+    match /projects/{projectId} {
+      allow read, create: if true;
+      allow update: if true;
+      allow delete: if true;
+
+      // 2. メンバーごとの回答データ (responses/{userName})
+      match /responses/{userName} {
+        allow read: if true;
+        allow delete: if true;
+        allow create, update: if request.resource.data.userName == userName;
+      }
+    }
+
+    // 3. 利用ログ (usage_log/{logId})
+    match /usage_log/{logId} {
+      // アプリから書き込みのみ許可（どのユーザーも記録できる）
+      allow create: if true;
+      // 管理画面から読み取り可能（Firebase AuthなしのSDKのため開放）
+      allow read: if true;
+      // 書き換え・削除は禁止（ログの改ざん防止）
+      allow update, delete: if false;
+    }
+
+    // 4. 以前のバージョンの互換性維持（エラー防止）
+    match /final_schedule/{scheduleId} {
+      allow read, write: if true;
+    }
+
+    // 5. システム設定 (system_config/admin)
+    match /system_config/admin {
+      allow read, create: if true;
+      allow update, delete: if false;
+    }
+  }
+}
