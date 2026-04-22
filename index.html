@@ -448,13 +448,13 @@
                 const lab = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].label : dL[i];
                 const tim = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].time : dT[i];
                 const [tStart, tEnd] = tim.split('-');
-                tr.innerHTML = `<td class="p-1.5 md:p-3 border align-middle">
-                    <div class="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3">
+                tr.innerHTML = `<td class="p-1 md:p-1 border align-middle">
+                    <div class="flex flex-col lg:flex-row items-center gap-1 lg:gap-2">
                         <input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:px-2 md:py-1 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名">
                         <div class="flex items-center gap-1">
-                            <input type="time" class="slot-time-start px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[74px] md:w-32 shadow-sm" value="${tStart || ''}">
+                            <input type="time" class="slot-time-start px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tStart || ''}">
                             <span class="text-xs md:text-base">-</span>
-                            <input type="time" class="slot-time-end px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[74px] md:w-32 shadow-sm" value="${tEnd || ''}">
+                            <input type="time" class="slot-time-end px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tEnd || ''}">
                         </div>
                     </div>
                 </td>` + 
