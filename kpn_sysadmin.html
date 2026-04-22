@@ -132,7 +132,7 @@
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, doc, collection, query, getDocs, setDoc, writeBatch, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, doc, collection, query, getDocs, getDoc, setDoc, writeBatch, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAbdT-7Po65EbzX82-mO9yXcW59Fjh7wjI",
@@ -164,9 +164,8 @@
         // Access Gate
         async function checkAccess() {
             try {
-                const snap = await getDocs(query(collection(db, "system_config")));
-                let adminDoc = null;
-                snap.forEach(d => { if(d.id === 'admin') adminDoc = d.data(); });
+                const snap = await getDoc(doc(db, "system_config", "admin"));
+                const adminDoc = snap.exists() ? snap.data() : null;
 
                 if (!adminDoc) {
                     showSetup();
@@ -292,9 +291,8 @@
             if(!confirm(`選択された ${checked.length} 件のプロジェクトを完全に削除します。本当によろしいですか？`)) return;
             
             const p = prompt("セキュリティ確認：管理者パスワードを入力してください");
-            const snap = await getDocs(query(collection(db, "system_config")));
-            let adminPass = "";
-            snap.forEach(d => { if(d.id === 'admin') adminPass = d.data().password; });
+            const snap = await getDoc(doc(db, "system_config", "admin"));
+            const adminPass = snap.exists() ? snap.data().password : "";
 
             if(!await verifyPassword(p, adminPass)) {
                 alert("パスワードが違います。一括削除を中止します。");
