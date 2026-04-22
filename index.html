@@ -406,12 +406,13 @@
         let currentAvailability = {};
         window.isDirty = false;
 
-        window.addEventListener('beforeunload', (e) => {
-            if (window.isDirty && window.onbeforeunload !== null) { 
+        window.beforeUnloadHandler = (e) => {
+            if (window.isDirty) { 
                 e.preventDefault(); 
                 e.returnValue = ''; 
             }
-        });
+        };
+        window.addEventListener('beforeunload', window.beforeUnloadHandler);
 
         const formatDateStr = (date) => date.toLocaleDateString('sv-SE');
         const parseDateStr = (dateStr) => new Date(dateStr + 'T00:00:00');
@@ -565,7 +566,7 @@
             if(savedPassword) localStorage.setItem(`pass_${id}`, savedPassword);
             else localStorage.removeItem(`pass_${id}`);
             window.isDirty = false;
-            window.onbeforeunload = null; // 強制的に警告を無効化
+            window.removeEventListener('beforeunload', window.beforeUnloadHandler); // 警告イベントを物理的に削除
             if(!isEditingProject) {
                 writeUsageLog({ event: "project_created", projectId: id, title, memberCount: members.length });
                 // 新規作成時は共有URLモーダルを表示してから遷移
