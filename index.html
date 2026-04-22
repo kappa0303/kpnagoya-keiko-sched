@@ -417,6 +417,22 @@
         const formatDateStr = (date) => date.toLocaleDateString('sv-SE');
         const parseDateStr = (dateStr) => new Date(dateStr + 'T00:00:00');
 
+        const hashPassword = async (p) => {
+            if (!p || p.startsWith('$v1$')) return p || "";
+            const b = new TextEncoder().encode(p);
+            const h = await crypto.subtle.digest('SHA-256', b);
+            return '$v1$' + Array.from(new Uint8Array(h)).map(x => x.toString(16).padStart(2, '0')).join('');
+        };
+        const verifyPassword = async (input, stored) => {
+            if (!stored) return true;
+            if (!input) return false;
+            if (stored.startsWith('$v1$')) {
+                const hashedInput = input.startsWith('$v1$') ? input : await hashPassword(input);
+                return hashedInput === stored;
+            }
+            return input === stored;
+        };
+
         function writeUsageLog(data) {
             // 利用ログをFirestoreにusage_logコレクションに記録（失敗してもサイレントに無視）
             addDoc(collection(db, "usage_log"), { ...data, timestamp: serverTimestamp() }).catch(() => {});
@@ -558,7 +574,7 @@
                 const cp  = document.getElementById('setup-password-confirm').value.trim();
                 // 現在のパスワードが設定されている場合のみ入力値を検証
                 if(np || cp || cur) {
-                    if(projectConfig.password && cur !== projectConfig.password) {
+                    if(projectConfig.password && !await verifyPassword(cur, projectConfig.password)) {
                         document.getElementById('pw-current-mismatch').classList.remove('hidden');
                         return;
                     }
@@ -575,8 +591,9 @@
                 savedPassword = document.getElementById('setup-password').value.trim();
             }
 
-            await setDoc(doc(db, "projects", id), { title, password: savedPassword, startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, showHolidayLabel, updatedAt: serverTimestamp() });
-            if(savedPassword) localStorage.setItem(`pass_${id}`, savedPassword);
+            const hPass = await hashPassword(savedPassword);
+            await setDoc(doc(db, "projects", id), { title, password: hPass, startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, showHolidayLabel, updatedAt: serverTimestamp() });
+            if(hPass) localStorage.setItem(`pass_${id}`, hPass);
             else localStorage.removeItem(`pass_${id}`);
             window.isDirty = false;
             window.removeEventListener('beforeunload', window.beforeUnloadHandler); // 警告イベントを物理的に削除
@@ -609,14 +626,19 @@
             const snap = await getDocFromServer(doc(db, "projects", id));
             if(!snap.exists()) return showAdminMode(false);
             projectConfig = snap.data();
-            if(projectConfig.password && localStorage.getItem(`pass_${id}`) !== projectConfig.password) { showLockScreen(); } else { showApp(); }
+            if(projectConfig.password && !await verifyPassword(localStorage.getItem(`pass_${id}`), projectConfig.password)) { showLockScreen(); } else { showApp(); }
         }
 
         function showLockScreen() {
             document.getElementById('lock-screen').classList.remove('hidden');
-            document.getElementById('btn-unlock').onclick = () => {
+            document.getElementById('btn-unlock').onclick = async () => {
                 const input = document.getElementById('access-pass-input').value;
-                if(input === projectConfig.password) { localStorage.setItem(`pass_${projectId}`, input); document.getElementById('lock-screen').classList.add('hidden'); showApp(); } 
+                if(await verifyPassword(input, projectConfig.password)) { 
+                    const h = await hashPassword(input);
+                    localStorage.setItem(`pass_${projectId}`, h); 
+                    document.getElementById('lock-screen').classList.add('hidden'); 
+                    showApp(); 
+                } 
                 else { document.getElementById('unlock-error').classList.remove('hidden'); }
             };
         }
