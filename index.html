@@ -450,11 +450,11 @@
                 const [tStart, tEnd] = tim.split('-');
                 tr.innerHTML = `<td class="p-1.5 md:p-3 border align-middle">
                     <div class="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3">
-                        <input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:p-2 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名">
+                        <input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:px-2 md:py-1 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名">
                         <div class="flex items-center gap-1">
-                            <input type="time" class="slot-time-start px-0.5 py-1 md:px-2 md:py-2 border-2 rounded-md text-[10px] md:text-lg w-20 md:w-36 shadow-sm" value="${tStart || ''}">
+                            <input type="time" class="slot-time-start px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[74px] md:w-32 shadow-sm" value="${tStart || ''}">
                             <span class="text-xs md:text-base">-</span>
-                            <input type="time" class="slot-time-end px-0.5 py-1 md:px-2 md:py-2 border-2 rounded-md text-[10px] md:text-lg w-20 md:w-36 shadow-sm" value="${tEnd || ''}">
+                            <input type="time" class="slot-time-end px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[74px] md:w-32 shadow-sm" value="${tEnd || ''}">
                         </div>
                     </div>
                 </td>` + 
