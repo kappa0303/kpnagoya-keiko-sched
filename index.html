@@ -234,6 +234,10 @@
                             <tbody id="setup-slot-grid"></tbody>
                         </table>
                     </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <button type="button" id="btn-add-slot" class="px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl text-sm font-bold hover:bg-indigo-100 transition shadow-sm active:scale-95">＋ 枠を追加 (最大10枠)</button>
+                        <p class="text-[10px] text-slate-400">※最大10枠まで。右側のチェックは、その曜日にその枠がデフォルトで「入力可能」になる設定です。</p>
+                    </div>
                 </div>
 
                 <div id="admin-actions" class="flex flex-col gap-3">
@@ -415,6 +419,35 @@
             addDoc(collection(db, "usage_log"), { ...data, timestamp: serverTimestamp() }).catch(() => {});
         }
 
+        function renderSlotRow(i, lab = "", tim = "", activeMap = null) {
+            const [tStart, tEnd] = tim.split('-');
+            const tr = document.createElement('tr');
+            tr.className = "slot-row border-b last:border-0";
+            tr.innerHTML = `<td class="p-1 md:p-1 border align-middle">
+                <div class="flex flex-col lg:flex-row items-center gap-1 lg:gap-2">
+                    <button type="button" onclick="removeSlotRow(this)" class="hidden md:block text-slate-300 hover:text-red-500 transition-colors p-1" title="削除">✖</button>
+                    <input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:px-2 md:py-1 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名">
+                    <div class="flex items-center gap-1">
+                        <input type="time" class="slot-time-start px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tStart || ''}">
+                        <span class="text-xs md:text-base">-</span>
+                        <input type="time" class="slot-time-end px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tEnd || ''}">
+                    </div>
+                </div>
+            </td>` + 
+            [1,2,3,4,5,6,0, 'H'].map(d => {
+                const isChecked = activeMap ? (activeMap[d] && activeMap[d].includes(`slot${i}`)) : (((d==='H'||d===0||d===6) && i !== 4) || i === 3);
+                return `<td class="p-0.5 md:p-1 border text-center align-middle"><input type="checkbox" class="slot-chk w-4 h-4 md:w-6 md:h-6" data-day="${d}" ${isChecked ? 'checked' : ''}></td>`;
+            }).join('');
+            return tr;
+        }
+
+        window.removeSlotRow = (btn) => {
+            const rows = document.querySelectorAll('.slot-row');
+            if(rows.length <= 1) { showAlert("最低1つの枠が必要です。"); return; }
+            btn.closest('tr').remove();
+            isDirty = true;
+        };
+
         let isEditingProject = false;
         function showAdminMode(isEdit = false) {
             isEditingProject = isEdit;
@@ -433,39 +466,23 @@
                 document.getElementById('setup-end').value = projectConfig.endDate;
                 document.getElementById('setup-members').value = projectConfig.members.join(', ');
                 document.getElementById('setup-show-holiday').checked = projectConfig.showHolidayLabel !== false;
-                // 編集モード: 新規パスワード欄を隠して変更用UIを表示
-                document.getElementById('pw-new-section').classList.add('hidden');
-                document.getElementById('pw-change-section').classList.remove('hidden');
-                document.getElementById('setup-password-current').value = '';
-                document.getElementById('setup-password-new').value = '';
-                document.getElementById('setup-password-confirm').value = '';
-                document.getElementById('pw-mismatch-msg').classList.add('hidden');
-                document.getElementById('pw-current-mismatch').classList.add('hidden');
-            }
-
-            for(let i=0; i<5; i++) {
-                const tr = document.createElement('tr');
-                const lab = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].label : dL[i];
-                const tim = (isEdit && projectConfig.slots[i]) ? projectConfig.slots[i].time : dT[i];
-                const [tStart, tEnd] = tim.split('-');
-                tr.innerHTML = `<td class="p-1 md:p-1 border align-middle">
-                    <div class="flex flex-col lg:flex-row items-center gap-1 lg:gap-2">
-                        <input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:px-2 md:py-1 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名">
-                        <div class="flex items-center gap-1">
-                            <input type="time" class="slot-time-start px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tStart || ''}">
-                            <span class="text-xs md:text-base">-</span>
-                            <input type="time" class="slot-time-end px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tEnd || ''}">
-                        </div>
-                    </div>
-                </td>` + 
-                [1,2,3,4,5,6,0, 'H'].map(d => `<td class="p-0.5 md:p-1 border text-center align-middle"><input type="checkbox" class="slot-chk w-4 h-4 md:w-6 md:h-6" data-row="${i}" data-day="${d}" ${
-                    isEdit
-                        ? (projectConfig.activeMap[d] && projectConfig.activeMap[d].includes(`slot${i}`) ? 'checked' : '')
-                        : (((d==='H'||d===0||d===6) && i !== 4) || i === 3) ? 'checked' : ''
-                }></td>`).join('');
-                grid.appendChild(tr);
+                
+                projectConfig.slots.forEach((s, i) => {
+                    grid.appendChild(renderSlotRow(i, s.label, s.time, projectConfig.activeMap));
+                });
+            } else {
+                for(let i=0; i<5; i++) {
+                    grid.appendChild(renderSlotRow(i, dL[i], dT[i]));
+                }
             }
         }
+
+        document.getElementById('btn-add-slot').onclick = () => {
+            const grid = document.getElementById('setup-slot-grid');
+            if(grid.querySelectorAll('tr').length >= 10) { showAlert("最大10枠までです。"); return; }
+            grid.appendChild(renderSlotRow(grid.querySelectorAll('tr').length, "", ""));
+            isDirty = true;
+        };
 
         // showAdminMode定義後にディスパッチ
         if (!projectId) { showAdminMode(false); } else { loadProject(projectId); }
@@ -474,9 +491,10 @@
         document.getElementById('btn-cancel-edit').onclick = () => location.reload();
         
         const setTemplate = (times, labels) => {
-            document.querySelectorAll('.slot-label-in').forEach((el, i) => el.value = labels[i]);
-            document.querySelectorAll('.slot-time-start').forEach((el, i) => el.value = times[i].split('-')[0] || '');
-            document.querySelectorAll('.slot-time-end').forEach((el, i) => el.value = times[i].split('-')[1] || '');
+            const grid = document.getElementById('setup-slot-grid'); grid.innerHTML = '';
+            labels.forEach((lab, i) => {
+                grid.appendChild(renderSlotRow(i, lab, times[i]));
+            });
         };
         document.getElementById('tpl-yousquare').onclick = () => setTemplate(["09:30-12:30", "12:30-15:30", "15:30-18:30", "18:30-21:30", ""], ["午前", "午後", "夕方", "夜間", ""]);
         document.getElementById('tpl-actenon').onclick = () => setTemplate(["09:30-12:00", "12:30-15:00", "15:30-18:00", "18:30-22:00", ""], ["午前", "午後", "夕方", "夜間", ""]);
@@ -493,14 +511,24 @@
             if(!title) { await showAlert("プロジェクト名を入力してください"); return; }
 
             const slots = [];
-            document.querySelectorAll('.slot-label-in').forEach((el, i) => { 
-                const label = el.value.trim(); 
-                const start = document.querySelectorAll('.slot-time-start')[i].value;
-                const end = document.querySelectorAll('.slot-time-end')[i].value;
-                if(label) slots.push({ id: `slot${i}`, label, time: `${start}-${end}` }); 
-            });
             const activeMap = {};
-            document.querySelectorAll('.slot-chk').forEach(ck => { if(ck.checked) { const d = ck.dataset.day; if(!activeMap[d]) activeMap[d] = []; activeMap[d].push(`slot${ck.dataset.row}`); } });
+            document.querySelectorAll('.slot-row').forEach((row, rowIndex) => {
+                const labVal = row.querySelector('.slot-label-in').value.trim();
+                const start = row.querySelector('.slot-time-start').value;
+                const end = row.querySelector('.slot-time-end').value;
+                if(!labVal) return;
+                
+                const sid = `slot${slots.length}`;
+                slots.push({ id: sid, label: labVal, time: `${start}-${end}` });
+                
+                row.querySelectorAll('.slot-chk').forEach(ck => {
+                    if(ck.checked) {
+                        const d = ck.dataset.day;
+                        if(!activeMap[d]) activeMap[d] = [];
+                        activeMap[d].push(sid);
+                    }
+                });
+            });
             
             const finalizedSlots = projectConfig?.finalizedSlots || [];
             const showHolidayLabel = document.getElementById('setup-show-holiday').checked;
