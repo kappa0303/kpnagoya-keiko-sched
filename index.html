@@ -151,7 +151,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-base font-bold mb-1">公演・プロジェクト名</label>
-                        <input type="text" id="setup-title" maxlength="50" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none">
+                        <input type="text" id="setup-title" maxlength="50" class="w-full p-3 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" oninput="window.isDirty=true">
                     </div>
                     <div id="setup-id-section">
                         <label class="block text-base font-bold mb-1">プロジェクトID <span class="text-red-500 text-xs">(あとから変更不可)</span></label>
@@ -168,7 +168,7 @@
                     <div id="pw-new-section">
                         <label class="block font-bold mb-1 text-sm">パスワード <span class="text-xs font-normal text-slate-500">(任意）設定すると閲覧にパスワードが必要になります</span></label>
                         <div class="relative">
-                            <input type="password" id="setup-password" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="パスワード（空白の場合は設定なし）">
+                            <input type="password" id="setup-password" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="パスワード（空白の場合は設定なし）" oninput="window.isDirty=true">
                             <button type="button" onclick="togglePw('setup-password',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">🔒</button>
                         </div>
                     </div>
@@ -176,15 +176,15 @@
                     <div id="pw-change-section" class="hidden">
                         <label class="block font-bold mb-1 text-sm">パスワードの変更 <span class="text-xs font-normal text-slate-500">(変更する場合のみ入力）</span></label>
                         <div class="relative mb-2">
-                            <input type="password" id="setup-password-current" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="現在のパスワード">
+                            <input type="password" id="setup-password-current" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="現在のパスワード" oninput="window.isDirty=true">
                             <button type="button" onclick="togglePw('setup-password-current',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">🔒</button>
                         </div>
                         <div class="relative mb-2">
-                            <input type="password" id="setup-password-new" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="新しいパスワード（空白=変更なし）">
+                            <input type="password" id="setup-password-new" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="新しいパスワード（空白=変更なし）" oninput="window.isDirty=true">
                             <button type="button" onclick="togglePw('setup-password-new',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">🔒</button>
                         </div>
                         <div class="relative">
-                            <input type="password" id="setup-password-confirm" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="再入力(確認用）">
+                            <input type="password" id="setup-password-confirm" maxlength="20" class="w-full p-3 pr-10 border-2 rounded-xl text-lg focus:border-indigo-500 outline-none" placeholder="再入力(確認用）" oninput="window.isDirty=true">
                             <button type="button" onclick="togglePw('setup-password-confirm',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">🔒</button>
                         </div>
                         <p id="pw-mismatch-msg" class="hidden text-xs text-red-500 mt-1 font-bold">⚠️ 新しいパスワードが一致しません</p>
@@ -192,7 +192,7 @@
                     </div>
                     <div>
                         <label class="block font-bold mb-1 text-sm">参加者名</label>
-                        <textarea id="setup-members" class="w-full p-3 border-2 rounded-xl" rows="2" placeholder="山田, 鈴木, 佐藤"></textarea>
+                        <textarea id="setup-members" class="w-full p-3 border-2 rounded-xl" rows="2" placeholder="山田, 鈴木, 佐藤" oninput="window.isDirty=true"></textarea>
                     </div>
                 </div>
 
@@ -200,15 +200,15 @@
                     <div class="flex flex-col md:flex-row gap-4 items-center">
                         <div class="flex-1 w-full">
                             <label class="block font-bold mb-1 text-sm">開始日</label>
-                            <input type="date" id="setup-start" class="w-full p-3 border-2 rounded-xl">
+                            <input type="date" id="setup-start" class="w-full p-3 border-2 rounded-xl" onchange="window.isDirty=true">
                         </div>
                         <div class="flex-1 w-full">
                             <label class="block font-bold mb-1 text-sm">終了日</label>
-                            <input type="date" id="setup-end" class="w-full p-3 border-2 rounded-xl">
+                            <input type="date" id="setup-end" class="w-full p-3 border-2 rounded-xl" onchange="window.isDirty=true">
                         </div>
                     </div>
                     <div class="flex items-center gap-2 pt-4 md:pt-6">
-                        <input type="checkbox" id="setup-show-holiday" class="w-5 h-5 cursor-pointer accent-indigo-600" checked>
+                        <input type="checkbox" id="setup-show-holiday" class="w-5 h-5 cursor-pointer accent-indigo-600" onchange="window.isDirty=true" checked>
                         <label for="setup-show-holiday" class="text-sm font-bold text-slate-700 cursor-pointer">祝日表示（月祝、水祝など）を有効にする</label>
                     </div>
                 </div>
@@ -404,10 +404,13 @@
         let projectConfig = null;
         let allResponses = {};
         let currentAvailability = {};
-        let isDirty = false;
+        window.isDirty = false;
 
         window.addEventListener('beforeunload', (e) => {
-            if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+            if (window.isDirty && window.onbeforeunload !== null) { 
+                e.preventDefault(); 
+                e.returnValue = ''; 
+            }
         });
 
         const formatDateStr = (date) => date.toLocaleDateString('sv-SE');
@@ -426,18 +429,18 @@
                 <div class="flex items-center gap-1 md:gap-2">
                     <button type="button" onclick="removeSlotRow(this)" class="text-slate-300 hover:text-red-500 transition-colors px-1" title="削除">✖</button>
                     <div class="flex-1 flex flex-col lg:flex-row items-center gap-1 lg:gap-2">
-                        <input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:px-2 md:py-1 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名">
+                        <input type="text" maxlength="10" class="slot-label-in w-full lg:flex-1 p-1 md:px-2 md:py-1 border-2 rounded-md font-bold text-xs md:text-base text-center lg:text-left" value="${lab}" placeholder="枠名" oninput="window.isDirty=true">
                         <div class="flex items-center gap-1">
-                            <input type="time" class="slot-time-start px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tStart || ''}">
+                            <input type="time" class="slot-time-start px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tStart || ''}" onchange="window.isDirty=true">
                             <span class="text-xs md:text-base">-</span>
-                            <input type="time" class="slot-time-end px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tEnd || ''}">
+                            <input type="time" class="slot-time-end px-0.5 py-1 md:px-1 md:py-1 border-2 rounded-md text-[10px] md:text-lg w-[68px] md:w-32 shadow-sm" value="${tEnd || ''}" onchange="window.isDirty=true">
                         </div>
                     </div>
                 </div>
             </td>` + 
             [1,2,3,4,5,6,0, 'H'].map(d => {
                 const isChecked = activeMap ? (activeMap[d] && activeMap[d].includes(`slot${i}`)) : (((d==='H'||d===0||d===6) && i !== 4) || i === 3);
-                return `<td class="p-0.5 md:p-1 border text-center align-middle"><input type="checkbox" class="slot-chk w-4 h-4 md:w-6 md:h-6" data-day="${d}" ${isChecked ? 'checked' : ''}></td>`;
+                return `<td class="p-0.5 md:p-1 border text-center align-middle"><input type="checkbox" class="slot-chk w-4 h-4 md:w-6 md:h-6" data-day="${d}" ${isChecked ? 'checked' : ''} onchange="window.isDirty=true"></td>`;
             }).join('');
             return tr;
         }
@@ -446,7 +449,7 @@
             const rows = document.querySelectorAll('.slot-row');
             if(rows.length <= 1) { showAlert("最低1つの枠が必要です。"); return; }
             btn.closest('tr').remove();
-            isDirty = true;
+            window.isDirty = true;
         };
 
         let isEditingProject = false;
@@ -482,7 +485,7 @@
             const grid = document.getElementById('setup-slot-grid');
             if(grid.querySelectorAll('tr').length >= 10) { showAlert("最大10枠までです。"); return; }
             grid.appendChild(renderSlotRow(grid.querySelectorAll('tr').length, "", ""));
-            isDirty = true;
+            window.isDirty = true;
         };
 
         // showAdminMode定義後にディスパッチ
@@ -497,8 +500,8 @@
                 grid.appendChild(renderSlotRow(i, lab, times[i]));
             });
         };
-        document.getElementById('tpl-yousquare').onclick = () => setTemplate(["09:30-12:30", "12:30-15:30", "15:30-18:30", "18:30-21:30", ""], ["午前", "午後", "夕方", "夜間", ""]);
-        document.getElementById('tpl-actenon').onclick = () => setTemplate(["09:30-12:00", "12:30-15:00", "15:30-18:00", "18:30-22:00", ""], ["午前", "午後", "夕方", "夜間", ""]);
+        document.getElementById('tpl-yousquare').onclick = () => { setTemplate(["09:30-12:30", "12:30-15:30", "15:30-18:30", "18:30-21:30", ""], ["午前", "午後", "夕方", "夜間", ""]); window.isDirty = true; };
+        document.getElementById('tpl-actenon').onclick = () => { setTemplate(["09:30-12:00", "12:30-15:00", "15:30-18:00", "18:30-22:00", ""], ["午前", "午後", "夕方", "夜間", ""]); window.isDirty = true; };
 
         document.getElementById('btn-open-edit').onclick = () => {
             showAdminMode(true);
@@ -561,6 +564,8 @@
             await setDoc(doc(db, "projects", id), { title, password: savedPassword, startDate: document.getElementById('setup-start').value, endDate: document.getElementById('setup-end').value, members, slots, activeMap, finalizedSlots, showHolidayLabel, updatedAt: serverTimestamp() });
             if(savedPassword) localStorage.setItem(`pass_${id}`, savedPassword);
             else localStorage.removeItem(`pass_${id}`);
+            window.isDirty = false;
+            window.onbeforeunload = null; // 強制的に警告を無効化
             if(!isEditingProject) {
                 writeUsageLog({ event: "project_created", projectId: id, title, memberCount: members.length });
                 // 新規作成時は共有URLモーダルを表示してから遷移
@@ -613,7 +618,7 @@
             let lastSelectedUser = "";
             sel.onchange = async () => {
                 const u = sel.value;
-                if (isDirty && lastSelectedUser !== u) {
+                if (window.isDirty && lastSelectedUser !== u) {
                     if (!await showConfirm("読み込み中のお名前に未保存の変更があります。破棄して別の人に切り替えますか？")) {
                         sel.value = lastSelectedUser;
                         return;
@@ -628,18 +633,18 @@
                 const uS = await getDoc(doc(db, "projects", projectId, "responses", u));
                 currentAvailability = uS.exists() ? uS.data().availability : {};
                 document.getElementById('comment-box').value = uS.exists() ? uS.data().comment : "";
-                isDirty = false;
+                window.isDirty = false;
                 renderInputGrid(); renderBulkButtons();
             };
-            document.getElementById('comment-box').oninput = () => { isDirty = true; };
+            document.getElementById('comment-box').oninput = () => { window.isDirty = true; };
             onSnapshot(query(collection(db, "projects", projectId, "responses")), (s) => { s.docs.forEach(d => allResponses[d.id] = d.data()); if(document.querySelector('.tab-btn.active').dataset.tab === 'summary') renderSummary(); });
             document.querySelectorAll('.tab-btn').forEach(b => b.onclick = async () => {
                 const target = b.dataset.tab;
                 const current = document.querySelector('.tab-btn.active').dataset.tab;
                 if(target === current) return;
-                if(isDirty) {
+                if(window.isDirty) {
                     if(!await showConfirm("未保存の変更があります。破棄して移動しますか？")) return;
-                    isDirty = false;
+                    window.isDirty = false;
                 }
                 document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active', 'text-slate-900'));
                 b.classList.add('active', 'text-slate-900');
@@ -705,14 +710,14 @@
             } else if(!status) { 
                 if(currentAvailability[date]) delete currentAvailability[date][slot]; 
             }
-            isDirty = true;
+            window.isDirty = true;
         };
 
         document.getElementById('btn-save-resp').onclick = async () => {
             const u = document.getElementById('user-select').value;
             if(!u) { await showAlert("お名前を選択してください"); return; }
             await setDoc(doc(db, "projects", projectId, "responses", u), { userName: u, availability: currentAvailability, comment: document.getElementById('comment-box').value, updatedAt: serverTimestamp() });
-            isDirty = false;
+            window.isDirty = false;
             await showAlert(`${u}さんの予定を登録しました`);
         };
 
@@ -742,7 +747,7 @@
             try {
                 await setDoc(doc(db, "projects", projectId), { finalizedSlots, updatedAt: serverTimestamp() }, { merge: true });
                 projectConfig.finalizedSlots = finalizedSlots;
-                isDirty = false;
+                window.isDirty = false;
                 await showAlert("稽古日程に反映しました！");
                 if(document.querySelector('.tab-btn[data-tab="confirmed"]')) document.querySelector('.tab-btn[data-tab="confirmed"]').click();
             } catch(e) {
@@ -779,8 +784,8 @@
                         <span class="font-bold text-xs md:text-base whitespace-nowrap">${slotLabel}</span>
                         <span class="text-[10px] md:text-sm text-slate-400 whitespace-nowrap">${slotTime}</span>
                     </span>
-                    <input type="text" class="confirmed-venue flex-1 min-w-0 px-2 py-1 md:py-2 border rounded text-xs md:text-base" placeholder="稽古場所" data-date="${f.date}" data-slot="${f.slotId}" oninput="isDirty=true" value="${f.venue || ''}">
-                    <input type="text" class="confirmed-notes flex-1 min-w-0 px-2 py-1 md:py-2 border rounded text-xs md:text-base" placeholder="備考" data-date="${f.date}" data-slot="${f.slotId}" oninput="isDirty=true" value="${f.notes || ''}">
+                    <input type="text" class="confirmed-venue flex-1 min-w-0 px-2 py-1 md:py-2 border rounded text-xs md:text-base" placeholder="稽古場所" data-date="${f.date}" data-slot="${f.slotId}" oninput="window.isDirty=true" value="${f.venue || ''}">
+                    <input type="text" class="confirmed-notes flex-1 min-w-0 px-2 py-1 md:py-2 border rounded text-xs md:text-base" placeholder="備考" data-date="${f.date}" data-slot="${f.slotId}" oninput="window.isDirty=true" value="${f.notes || ''}">
                 </div>`;
             });
             container.innerHTML = html;
@@ -802,7 +807,7 @@
             try {
                 await setDoc(doc(db, "projects", projectId), { finalizedSlots: updatedSlots, updatedAt: serverTimestamp() }, { merge: true });
                 projectConfig.finalizedSlots = updatedSlots;
-                isDirty = false;
+                window.isDirty = false;
                 await showAlert("場所・備考を登録しました！");
             } catch(e) {
                 console.error(e);
@@ -904,7 +909,7 @@
                 });
             }
             container.innerHTML = html + `</tbody></table>`;
-            container.querySelectorAll('.slot-confirm-chk').forEach(c => c.onchange = () => { isDirty = true; });
+            container.querySelectorAll('.slot-confirm-chk').forEach(c => c.onchange = () => { window.isDirty = true; });
             updateCommentFloatBtn();
         }
     </script>
